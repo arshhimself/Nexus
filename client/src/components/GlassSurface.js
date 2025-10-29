@@ -1,4 +1,4 @@
-
+"use client"
 import { useEffect, useRef, useState, useId } from 'react';
 
 const useDarkMode = () => {
@@ -45,13 +45,12 @@ const GlassSurface = ({
   const redGradId = `red-grad-${uniqueId}`;
   const blueGradId = `blue-grad-${uniqueId}`;
 
-  // Remove TypeScript type annotations
-  const containerRef = useRef(null);
-  const feImageRef = useRef(null);
-  const redChannelRef = useRef(null);
-  const greenChannelRef = useRef(null);
-  const blueChannelRef = useRef(null);
-  const gaussianBlurRef = useRef(null);
+  const containerRef = useRef < HTMLDivElement > null;
+  const feImageRef = useRef < SVGFEImageElement > null;
+  const redChannelRef = useRef < SVGFEDisplacementMapElement > null;
+  const greenChannelRef = useRef < SVGFEDisplacementMapElement > null;
+  const blueChannelRef = useRef < SVGFEDisplacementMapElement > null;
+  const gaussianBlurRef = useRef < SVGFEGaussianBlurElement > null;
 
   const isDarkMode = useDarkMode();
 
@@ -84,21 +83,16 @@ const GlassSurface = ({
   };
 
   const updateDisplacementMap = () => {
-    if (feImageRef.current) {
-      feImageRef.current.setAttribute('href', generateDisplacementMap());
-    }
+    feImageRef.current?.setAttribute('href', generateDisplacementMap());
   };
 
   useEffect(() => {
     updateDisplacementMap();
-    
-    const refs = [
+    [
       { ref: redChannelRef, offset: redOffset },
       { ref: greenChannelRef, offset: greenOffset },
       { ref: blueChannelRef, offset: blueOffset }
-    ];
-    
-    refs.forEach(({ ref, offset }) => {
+    ].forEach(({ ref, offset }) => {
       if (ref.current) {
         ref.current.setAttribute('scale', (distortionScale + offset).toString());
         ref.current.setAttribute('xChannelSelector', xChannel);
@@ -106,9 +100,8 @@ const GlassSurface = ({
       }
     });
 
-    if (gaussianBlurRef.current) {
-      gaussianBlurRef.current.setAttribute('stdDeviation', displace.toString());
-    }
+    gaussianBlurRef.current?.setAttribute('stdDeviation', displace.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     width,
     height,
@@ -139,15 +132,30 @@ const GlassSurface = ({
     return () => {
       resizeObserver.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      setTimeout(updateDisplacementMap, 0);
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setTimeout(updateDisplacementMap, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, height]);
 
   const supportsSVGFilters = () => {
-    if (typeof window === 'undefined') return false;
-    
     const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
     const isFirefox = /Firefox/.test(navigator.userAgent);
 
@@ -259,33 +267,17 @@ const GlassSurface = ({
     <div
       ref={containerRef}
       className={`${glassSurfaceClasses} ${focusVisibleClasses} ${className}`}
-      style={getContainerStyles()}>
+      style={getContainerStyles()}
+    >
       <svg
         className="w-full h-full pointer-events-none absolute inset-0 opacity-0 -z-10"
-        xmlns="http://www.w3.org/2000/svg">
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <defs>
-          <filter
-            id={filterId}
-            colorInterpolationFilters="sRGB"
-            x="0%"
-            y="0%"
-            width="100%"
-            height="100%">
-            <feImage
-              ref={feImageRef}
-              x="0"
-              y="0"
-              width="100%"
-              height="100%"
-              preserveAspectRatio="none"
-              result="map" />
+          <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
+            <feImage ref={feImageRef} x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
 
-            <feDisplacementMap
-              ref={redChannelRef}
-              in="SourceGraphic"
-              in2="map"
-              id="redchannel"
-              result="dispRed" />
+            <feDisplacementMap ref={redChannelRef} in="SourceGraphic" in2="map" id="redchannel" result="dispRed" />
             <feColorMatrix
               in="dispRed"
               type="matrix"
@@ -293,14 +285,16 @@ const GlassSurface = ({
                       0 0 0 0 0
                       0 0 0 0 0
                       0 0 0 1 0"
-              result="red" />
+              result="red"
+            />
 
             <feDisplacementMap
               ref={greenChannelRef}
               in="SourceGraphic"
               in2="map"
               id="greenchannel"
-              result="dispGreen" />
+              result="dispGreen"
+            />
             <feColorMatrix
               in="dispGreen"
               type="matrix"
@@ -308,14 +302,10 @@ const GlassSurface = ({
                       0 1 0 0 0
                       0 0 0 0 0
                       0 0 0 1 0"
-              result="green" />
+              result="green"
+            />
 
-            <feDisplacementMap
-              ref={blueChannelRef}
-              in="SourceGraphic"
-              in2="map"
-              id="bluechannel"
-              result="dispBlue" />
+            <feDisplacementMap ref={blueChannelRef} in="SourceGraphic" in2="map" id="bluechannel" result="dispBlue" />
             <feColorMatrix
               in="dispBlue"
               type="matrix"
@@ -323,7 +313,8 @@ const GlassSurface = ({
                       0 0 0 0 0
                       0 0 1 0 0
                       0 0 0 1 0"
-              result="blue" />
+              result="blue"
+            />
 
             <feBlend in="red" in2="green" mode="screen" result="rg" />
             <feBlend in="rg" in2="blue" mode="screen" result="output" />
@@ -331,8 +322,8 @@ const GlassSurface = ({
           </filter>
         </defs>
       </svg>
-      <div
-        className="w-full h-full flex items-center justify-center p-2 rounded-[inherit] relative z-10">
+
+      <div className="w-full h-full flex items-center justify-center p-2 rounded-[inherit] relative z-10">
         {children}
       </div>
     </div>
