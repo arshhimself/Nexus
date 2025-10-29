@@ -43,39 +43,7 @@ function Hero() {
   );
 }
 
-function About() {
-  return (
-    <section id="about" className="py-14">
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-2xl font-semibold text-neutral-100">
-          About Our Community
-        </h2>
-        <p className="mt-3 text-neutral-400 max-w-2xl mx-auto">
-          Nexus is an open-source learning community that believes in
-          collaboration over competition. Whether you’re a developer, designer,
-          or a lifelong learner, this is where you share your insights, solve
-          problems, and build projects that make learning fun and collective.
-        </p>
-      </div>
-    </section>
-  );
-}
 
-function Events() {
-  return (
-    <section id="events" className="py-14">
-      <div className="max-w-4xl mx-auto px-6 text-center">
-        <h3 className="text-xl font-semibold text-neutral-100">
-          Upcoming Events
-        </h3>
-        <p className="mt-3 text-neutral-400">
-          Stay connected with our open meetups, hackathons, and community
-          hangouts. Everyone is welcome to contribute and participate.
-        </p>
-      </div>
-    </section>
-  );
-}
 
 function Testimonial() {
   return (
@@ -147,9 +115,8 @@ function FullPageLayout() {
         <main className="pt-20">
           <div className="max-w-6xl mx-auto">
             <Hero />
-            <About />
-            <Events />
-            <Testimonial />
+           
+
             <Footer />
           </div>
         </main>
