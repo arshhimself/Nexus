@@ -159,7 +159,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-ALLOWED_HOSTS = [ 'nexus-rcoe.onrender.com','127.0.0.1', 'localhost', "192.168.0.107","13.200.225.213"]
+ALLOWED_HOSTS = [ 'nexus-ccz0.onrender.com','nexus-rcoe.onrender.com','127.0.0.1', 'localhost', "192.168.0.107","13.200.225.213"]
 
 # Middleware adjustments for static files
 MIDDLEWARE += [
