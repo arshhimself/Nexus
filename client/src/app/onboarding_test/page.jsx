@@ -1,27 +1,47 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react";
 
 export default function ProctoredTestPage() {
-  const videoRef = useRef(null)
-  const [cameraAccess, setCameraAccess] = useState(null)
-  const [testStarted, setTestStarted] = useState(false)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [warnings, setWarnings] = useState(0)
-  const [isLocked, setIsLocked] = useState(false)
-  const [toasts, setToasts] = useState([])
-  const [timeLeft, setTimeLeft] = useState(600) // 10 minutes in seconds
-  const warningTimeoutRef = useRef(null)
-  const visibilityRef = useRef(true)
-  const timerRef = useRef(null)
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [cameraAccess, setCameraAccess] = useState(null);
+  const [testStarted, setTestStarted] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [warnings, setWarnings] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+  const warningTimeoutRef = useRef(null);
+  const visibilityRef = useRef(true);
+  const timerRef = useRef(null);
 
   const [questions] = useState([
     { id: 1, question: "What is the purpose of Git in version control?" },
     { id: 2, question: "Explain the difference between Git and GitHub." },
     { id: 3, question: "How do you create a new branch in Git?" },
-  ])
+  ]);
 
-  const [answers, setAnswers] = useState({})
+  const [answers, setAnswers] = useState({});
+
+  useEffect(() => {
+    // Hide any navbar coming from parent layout on this page
+    const navSelectors = 'nav, [role="navigation"], .navbar, .nav';
+    const navElements = Array.from(document.querySelectorAll(navSelectors));
+    const previousDisplays = navElements.map((el) => ({
+      el,
+      display: el.style.display,
+    }));
+    navElements.forEach((el) => {
+      el.style.display = "none";
+    });
+
+    return () => {
+      previousDisplays.forEach(({ el, display }) => {
+        el.style.display = display || "";
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const initializeCamera = async () => {
@@ -29,153 +49,194 @@ export default function ProctoredTestPage() {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
           audio: false,
-        })
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-        setCameraAccess(true)
-      } catch (error) {
-        console.error("Camera access denied:", error)
-        setCameraAccess(false)
-      }
-    }
+        });
 
-    initializeCamera()
+        // Save stream to ref. We will attach it to the video element when it mounts.
+        streamRef.current = stream;
+
+        setCameraAccess(true);
+      } catch (error) {
+        console.error("Camera access denied:", error);
+        setCameraAccess(false);
+      }
+    };
+
+    initializeCamera();
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
+      // Stop tracks from the stored stream (if any)
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
+  // Attach stream to video element when both are available and ensure playback starts
+  useEffect(() => {
+    if (cameraAccess === true && videoRef.current && streamRef.current) {
+      try {
+        // Only set if not already set
+        if (videoRef.current.srcObject !== streamRef.current) {
+          videoRef.current.srcObject = streamRef.current;
+        }
+        // Attempt to play (some browsers require an explicit play())
+        const playPromise = videoRef.current.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(() => {
+            // ignore play errors (autoplay policy), video element will be ready
+          });
+        }
+      } catch (err) {
+        // Fail silently but log for debugging
+        console.warn("Unable to attach stream to video element:", err);
       }
     }
-  }, [])
+  }, [cameraAccess]);
 
   useEffect(() => {
-    if (!testStarted || isLocked) return
+    if (!testStarted || isLocked) return;
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timerRef.current)
-          setIsLocked(true)
-          addToast("⏰ Time's up! Test submitted.", "error")
-          return 0
+          clearInterval(timerRef.current);
+          setIsLocked(true);
+          addToast("⏰ Time's up! Test submitted.", "error");
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(timerRef.current)
-  }, [testStarted, isLocked])
+    return () => clearInterval(timerRef.current);
+  }, [testStarted, isLocked]);
 
   const addToast = (message, type = "warning") => {
-    const id = Date.now()
-    setToasts((prev) => [...prev, { id, message, type }])
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 4000)
-  }
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
 
   // Tab visibility detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        visibilityRef.current = false
+        visibilityRef.current = false;
         if (!isLocked) {
-          triggerWarning()
+          triggerWarning();
         }
       } else {
-        visibilityRef.current = true
+        visibilityRef.current = true;
       }
-    }
+    };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [isLocked, warnings])
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [isLocked, warnings]);
 
   // Trigger warning and update counter
   const triggerWarning = () => {
     setWarnings((prev) => {
-      const newWarnings = prev + 1
-      addToast(`Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`, "warning")
+      const newWarnings = prev + 1;
+      addToast(
+        `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
+        "warning",
+      );
 
       if (newWarnings >= 3) {
-        setIsLocked(true)
-        addToast("Test locked due to multiple warnings", "error")
+        setIsLocked(true);
+        addToast("Test locked due to multiple warnings", "error");
       }
 
-      return newWarnings
-    })
-  }
+      return newWarnings;
+    });
+  };
 
   // Disable security-sensitive actions
   useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault()
+    const handleContextMenu = (e) => e.preventDefault();
     const handleKeyDown = (e) => {
-      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
 
       if (
-        (ctrlKey && (e.key === "c" || e.key === "v" || e.key === "x" || e.key === "u")) ||
+        (ctrlKey &&
+          (e.key === "c" || e.key === "v" || e.key === "x" || e.key === "u")) ||
         (e.ctrlKey && e.shiftKey && e.key === "i") ||
         e.key === "F12"
       ) {
-        e.preventDefault()
+        e.preventDefault();
       }
-    }
+    };
 
-    document.addEventListener("contextmenu", handleContextMenu)
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("contextmenu", handleContextMenu)
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [])
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // Disable copy/paste
   useEffect(() => {
-    const handleCopy = (e) => e.preventDefault()
-    const handlePaste = (e) => e.preventDefault()
-    const handleCut = (e) => e.preventDefault()
+    const handleCopy = (e) => e.preventDefault();
+    const handlePaste = (e) => e.preventDefault();
+    const handleCut = (e) => e.preventDefault();
 
-    document.addEventListener("copy", handleCopy)
-    document.addEventListener("paste", handlePaste)
-    document.addEventListener("cut", handleCut)
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("paste", handlePaste);
+    document.addEventListener("cut", handleCut);
 
     return () => {
-      document.removeEventListener("copy", handleCopy)
-      document.removeEventListener("paste", handlePaste)
-      document.removeEventListener("cut", handleCut)
-    }
-  }, [])
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("paste", handlePaste);
+      document.removeEventListener("cut", handleCut);
+    };
+  }, []);
 
   const handleStartTest = () => {
     if (cameraAccess === true) {
-      setTestStarted(true)
-      addToast("Test started. Answer each question and submit to continue.", "success")
+      setTestStarted(true);
+      addToast(
+        "Test started. Answer each question and submit to continue.",
+        "success",
+      );
     }
-  }
+  };
 
   const handleSubmitQuestion = () => {
-    if (!answers[questions[currentQuestionIndex].id]) {
-      addToast("Please answer the question before submitting.", "warning")
-      return
+    const qId = questions[currentQuestionIndex].id;
+    const answer = answers[qId];
+
+    if (!answer) {
+      addToast("Please answer the question before submitting.", "warning");
+      return;
     }
+
+    // Print the answer for this question to the console
+    console.log(`Submitted answer for question ${qId}:`, answer);
 
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1)
-      addToast("Answer submitted. Next question loaded.", "success")
+      setCurrentQuestionIndex((prev) => prev + 1);
+      addToast("Answer submitted. Next question loaded.", "success");
     } else {
-      setIsLocked(true)
-      addToast("All questions submitted successfully!", "success")
+      // Final submission: print all answers
+      console.log("All submitted answers:", answers);
+      setIsLocked(true);
+      addToast("All questions submitted successfully!", "success");
     }
-  }
+  };
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -186,7 +247,8 @@ export default function ProctoredTestPage() {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%)",
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%)",
         }}
       />
 
@@ -212,7 +274,9 @@ export default function ProctoredTestPage() {
         <div className="fixed top-6 left-6 z-40">
           <div
             className={`backdrop-blur-xl border rounded-xl px-6 py-3 font-mono text-lg font-bold ${
-              timeLeft <= 60 ? "bg-red-500/20 border-red-500/30 text-red-200" : "bg-white/5 border-white/10 text-white"
+              timeLeft <= 60
+                ? "bg-red-500/20 border-red-500/30 text-red-200"
+                : "bg-white/5 border-white/10 text-white"
             }`}
           >
             {formatTime(timeLeft)}
@@ -224,11 +288,19 @@ export default function ProctoredTestPage() {
       <div className="fixed top-6 right-6 z-40">
         {cameraAccess === true ? (
           <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-white/20 shadow-lg backdrop-blur-xl bg-white/5">
-            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
           </div>
         ) : cameraAccess === false ? (
           <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-red-500/50 shadow-lg backdrop-blur-xl bg-red-500/10 flex items-center justify-center">
-            <span className="text-xs text-red-400 text-center px-2">Camera Denied</span>
+            <span className="text-xs text-red-400 text-center px-2">
+              Camera Denied
+            </span>
           </div>
         ) : (
           <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-white/20 shadow-lg backdrop-blur-xl bg-white/5 flex items-center justify-center">
@@ -242,9 +314,13 @@ export default function ProctoredTestPage() {
         <div className="w-full max-w-3xl">
           {!testStarted ? (
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">GitHub Skills Test</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                Nexus Onboarding Test
+              </h1>
               <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-12 mb-8">
-                <h2 className="text-2xl font-semibold text-white mb-3">Camera Permission Required</h2>
+                <h2 className="text-2xl font-semibold text-white mb-3">
+                  Camera Permission Required
+                </h2>
                 <p className="text-white/60 mb-8 text-lg">
                   {cameraAccess === null
                     ? "Checking camera access..."
@@ -261,7 +337,9 @@ export default function ProctoredTestPage() {
                       : "bg-white/10 text-white/40 cursor-not-allowed"
                   }`}
                 >
-                  {cameraAccess === true ? "Start Test" : "Waiting for Camera..."}
+                  {cameraAccess === true
+                    ? "Start Test"
+                    : "Waiting for Camera..."}
                 </button>
               </div>
             </div>
@@ -269,7 +347,9 @@ export default function ProctoredTestPage() {
             <>
               {/* Header */}
               <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">GitHub Skills Test</h1>
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+                  Nexus Onboarding Test
+                </h1>
                 <p className="text-white/50 text-lg">
                   Question {currentQuestionIndex + 1} of {questions.length}
                 </p>
@@ -281,7 +361,9 @@ export default function ProctoredTestPage() {
                 <div className="mb-8">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 flex items-center justify-center">
-                      <span className="text-white font-semibold">{currentQuestionIndex + 1}</span>
+                      <span className="text-white font-semibold">
+                        {currentQuestionIndex + 1}
+                      </span>
                     </div>
                     <p className="text-white text-xl font-medium leading-relaxed">
                       {questions[currentQuestionIndex].question}
@@ -300,7 +382,7 @@ export default function ProctoredTestPage() {
                   }
                   disabled={isLocked}
                   placeholder="Type your answer here..."
-                  className="w-full h-40 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-72 bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all duration-300 resize-y disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -331,11 +413,25 @@ export default function ProctoredTestPage() {
       {isLocked && testStarted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-in fade-in duration-300">
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 text-center max-w-md">
-            <h2 className="text-2xl font-bold text-white mb-3">Test Completed</h2>
-            <p className="text-white/60">All your answers have been submitted successfully.</p>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Test Completed
+            </h2>
+            <p className="text-white/60">
+              All your answers have been submitted successfully. you will
+              receive your results in a minute on the leaderboard. Thank you for
+              participating in our test!
+            </p>
+
+            <button
+              onClick={() => (window.location.href = "/leaderboard")}
+              aria-label="View leaderboard"
+              className="mt-6 w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-white text-black hover:bg-black hover:text-white border border-white/10 shadow-sm active:scale-95"
+            >
+              View Leaderboard
+            </button>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
