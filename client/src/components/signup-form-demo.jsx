@@ -16,7 +16,8 @@ export default function SignupFormDemo() {
   };
 
   return (
-    <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-black p-4 md:rounded-2xl md:p-8 z-10 ]">
+   <div className="mx-auto w-full max-w-md rounded-md bg-black p-4 md:rounded-2xl md:p-8 z-10 shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+
       <h2 className="text-xl font-bold text-white">
         Welcome to Nexus
       </h2>

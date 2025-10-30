@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import SignupFormDemo from '@/components/signup-form-demo';
 function page() {
   return (
-    <div className="pt-[20vh] relative flex min-h-[100vh] w-full items-center justify-center bg-black">
+    <div className="pt-[20vh] p-5 relative flex min-h-[100vh] w-full items-center justify-center bg-black">
          <div
            className={cn(
              "absolute inset-0",
