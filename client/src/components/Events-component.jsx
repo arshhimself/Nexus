@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
-
+import { useRouter } from 'next/navigation'
 export function AppleCardsCarouselDemo() {
   const cards = data.map((card, index) => (
     <Card key={card.src} card={card} index={index} />
@@ -44,6 +44,7 @@ const DummyContent = () => {
 
 };
 const Textcontent = () => {
+  const router = useRouter()
   return (
     <div className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
       <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto text-center">
@@ -59,7 +60,7 @@ const Textcontent = () => {
         width="500"
         className="md:w-1/2 md:h-1/2 h-full w-full mx-auto object-contain mt-8"
       />
-      <button className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-white transition-all duration-300 bg-gradient-to-r from-neutral-800 to-neutral-700 rounded-xl hover:from-neutral-700 hover:to-neutral-600 group">
+      <button className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-white transition-all duration-300 bg-gradient-to-r from-neutral-800 to-neutral-700 rounded-xl hover:from-neutral-700 hover:to-neutral-600 group" onClick={()=>{ router.push('/onboarding_test')}}>
   <span className="absolute inset-0 w-full h-full transition-all duration-300 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 blur-lg"></span>
   <span className="relative z-10">Give Test</span>
 </button>
