@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
+import { useRouter } from "next/navigation";
 export default function ProctoredTestPage() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
   const [cameraAccess, setCameraAccess] = useState(null);
   const [testStarted, setTestStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [warnings, setWarnings] = useState(0);
+  const [quizData, setdata] = useState();
   const [isLocked, setIsLocked] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
@@ -209,28 +211,47 @@ export default function ProctoredTestPage() {
     }
   };
 
-  const handleSubmitQuestion = () => {
-    const qId = questions[currentQuestionIndex].id;
-    const answer = answers[qId];
+const handleSubmitQuestion = async() => {
+  const qId = questions[currentQuestionIndex].id;
+  const answer = answers[qId];
 
-    if (!answer) {
-      addToast("Please answer the question before submitting.", "warning");
-      return;
-    }
+  if (!answer) {
+    addToast("Please answer the question before submitting.", "warning");
+    return;
+  }
 
-    // Print the answer for this question to the console
-    console.log(`Submitted answer for question ${qId}:`, answer);
+  // Print the answer for this question to the console
+  // console.log(`Submitted answer for question ${qId}:`, answer);
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      addToast("Answer submitted. Next question loaded.", "success");
-    } else {
-      // Final submission: print all answers
-      console.log("All submitted answers:", answers);
-      setIsLocked(true);
-      addToast("All questions submitted successfully!", "success");
-    }
-  };
+  if (currentQuestionIndex < questions.length - 1) {
+    setCurrentQuestionIndex((prev) => prev + 1);
+    addToast("Answer submitted. Next question loaded.", "success");
+  } else {
+    // Final submission: format and print all answers as required JSON
+    const formattedOutput = {
+      "questions_answers": questions.map((q, index) => ({
+        q: q.question,
+        a: answers[q.id] || ""
+      }))
+    };
+    
+    console.log("All submitted answers:");
+    // console.log(JSON.stringify(formattedOutput, null, 2));
+    
+    setIsLocked(true);
+    addToast("All questions submitted successfully!", "success");
+
+
+    const res = await fetch("http://127.0.0.1:8000/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+       body: JSON.stringify(formattedOutput),
+    })
+    const data = await res.json()
+    setdata(data)
+
+  }
+};
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -418,10 +439,16 @@ export default function ProctoredTestPage() {
             </h2>
             <p className="text-white/60">
               All your answers have been submitted successfully. you will
-              receive your results in a minute on the leaderboard. Thank you for
+              receive your results will be ready in seconds, Thank you for
               participating in our test!
             </p>
-
+            <button
+              onClick={(quizData) => (window.location.href = "/result")}
+              aria-label="View score"
+              className="mt-6 w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-white text-black hover:bg-black hover:text-white border border-white/10 shadow-sm active:scale-95"
+            >
+              View your score
+            </button>
             <button
               onClick={() => (window.location.href = "/leaderboard")}
               aria-label="View leaderboard"
@@ -429,6 +456,7 @@ export default function ProctoredTestPage() {
             >
               View Leaderboard
             </button>
+            
           </div>
         </div>
       )}

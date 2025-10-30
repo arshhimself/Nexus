@@ -2,7 +2,7 @@
 import React from "react";
 import { useRouter } from 'next/navigation'
 import { BackgroundBeams } from "@/components/ui/background-beams";
-
+import { Events } from "@/components/Events-component";
 function Hero() {
   const router = useRouter()
   const handleClick = () => {
@@ -17,7 +17,7 @@ function Hero() {
       
      
       {/* Content */}
-      <div className="max-w-5xl w-full text-center mx-auto">
+      <div className=" w-full text-center mx-auto">
         {/* Heading */}
       <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-neutral-100 to-neutral-500 tracking-tight leading-[1.1] px-2 sm:px-4">
   Building a Culture of <br className="hidden sm:block" />
@@ -112,13 +112,15 @@ function Footer() {
 
 function FullPageLayout() {
   return (
-    <div className="min-h-screen w-full bg-neutral-950 text-neutral-200 font-sans scroll-smooth overflow-x-hidden">
+    <div className="min-h-screen  bg-neutral-950 text-neutral-200 font-sans scroll-smooth overflow-x-hidden">
       <BackgroundBeams/>
 
       <div className="relative">
         <main>
-          <div className="max-w-6xl mx-auto">
+          <div className=" mx-auto">
             <Hero />
+            <Events></Events>
+
             <Testimonial />
             <Footer />
           </div>
