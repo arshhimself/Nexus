@@ -19,22 +19,18 @@ export function AppleCardsCarouselDemo() {
 }
 
 const DummyContent = () => {
-  return (
-    <>
-      {[...new Array(3).fill(1)].map((_, index) => {
+
+    
         return (
           <div
-            key={"dummy-content" + index}
+            key={"dummy-content"}
             className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
             <p
               className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto">
               <span className="font-bold text-neutral-700 dark:text-neutral-200">
-                The first rule of Apple club is that you boast about Apple club.
+                Nexus Events
               </span>{" "}
-              Keep a journal, quickly jot down a grocery list, and take amazing
-              class notes. Want to convert those notes to text? No problem.
-              Langotiya jeetu ka mara hua yaar is ready to capture every
-              thought.
+             Stay tuned for our next Nexus community event! As part of our ongoing initiative to promote open-source culture, we’ll soon be hosting an engaging session designed to help you learn, collaborate, and grow with like-minded developers. Details will be announced soon — get ready to be part of something exciting!
             </p>
             <img
               src="https://assets.aceternity.com/macbook.png"
@@ -44,47 +40,63 @@ const DummyContent = () => {
               className="md:w-1/2 md:h-1/2 h-full w-full mx-auto object-contain" />
           </div>
         );
-      })}
-    </>
+      
+
+};
+const Textcontent = () => {
+  return (
+    <div className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
+      <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto text-center">
+        <span className="font-bold text-neutral-700 dark:text-neutral-200">
+          Test Description:
+        </span>{" "}
+        As instructed before, participants were encouraged to explore GitHub and brush up on their skills. This test marks the next step — an opportunity to assess how well you’ve understood and retained what you learned. It’s a short, focused evaluation designed to reinforce practical understanding and ensure everyone is ready to collaborate effectively in the open-source environment.
+      </p>
+      <img
+        src="https://assets.aceternity.com/macbook.png"
+        alt="Test interface mockup"
+        height="500"
+        width="500"
+        className="md:w-1/2 md:h-1/2 h-full w-full mx-auto object-contain mt-8"
+      />
+      <button className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-white transition-all duration-300 bg-gradient-to-r from-neutral-800 to-neutral-700 rounded-xl hover:from-neutral-700 hover:to-neutral-600 group">
+  <span className="absolute inset-0 w-full h-full transition-all duration-300 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 blur-lg"></span>
+  <span className="relative z-10">Give Test</span>
+</button>
+
+    </div>
   );
 };
 
 const data = [
   {
-    category: "Artificial Intelligence",
-    title: "You can do more with AI.",
-    src: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=3556&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    category: "Test",
+    title: "Nexus onboarding Test",
+    src: "https://images.unsplash.com/photo-1448932223592-d1fc686e76ea?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2938",
+    content: <Textcontent />,
+  },
+  {
+    category: "Upcoming",
+    title: "Upcoming Events",
+    src: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1674",
     content: <DummyContent />,
   },
   {
-    category: "Productivity",
-    title: "Enhance your productivity.",
-    src: "https://images.unsplash.com/photo-1531554694128-c4c6665f59c2?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    content: <DummyContent />,
-  },
-  {
-    category: "Product",
-    title: "Launching the new Apple Vision Pro.",
-    src: "https://images.unsplash.com/photo-1713869791518-a770879e60dc?q=80&w=2333&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    category: "Upcoming",
+    title: "Upcoming Events",
+    src: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1674",
     content: <DummyContent />,
   },
 
   {
-    category: "Product",
-    title: "Maps for your iPhone 15 Pro Max.",
-    src: "https://images.unsplash.com/photo-1599202860130-f600f4948364?q=80&w=2515&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+   category: "Upcoming",
+    title: "Upcoming Events",
+    src: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1674",
     content: <DummyContent />,
   },
-  {
-    category: "iOS",
-    title: "Photography just got better.",
-    src: "https://images.unsplash.com/photo-1602081957921-9137a5d6eaee?q=80&w=2793&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    content: <DummyContent />,
-  },
-  {
-    category: "Hiring",
-    title: "Hiring for a Staff Software Engineer",
-    src: "https://images.unsplash.com/photo-1511984804822-e16ba72f5848?q=80&w=2048&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    content: <DummyContent />,
-  },
+
 ];
+
+
+
+

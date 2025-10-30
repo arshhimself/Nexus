@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from "@/lib/utils";
 function page() {
   return (
-    <div className="relative flex h-[100vh] w-full items-center justify-center bg-black">
+    <div className="relative flex h-[100vh] w-full items-center justify-center bg-black p-5">
       <div
         className={cn(
           "absolute inset-0",
