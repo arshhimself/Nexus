@@ -211,7 +211,7 @@ export default function ProctoredTestPage() {
     }
   };
 
-const handleSubmitQuestion = async() => {
+const handleSubmitQuestion = async () => {
   const qId = questions[currentQuestionIndex].id;
   const answer = answers[qId];
 
@@ -220,39 +220,57 @@ const handleSubmitQuestion = async() => {
     return;
   }
 
-  // Print the answer for this question to the console
-  // console.log(`Submitted answer for question ${qId}:`, answer);
-
   if (currentQuestionIndex < questions.length - 1) {
     setCurrentQuestionIndex((prev) => prev + 1);
     addToast("Answer submitted. Next question loaded.", "success");
   } else {
-    // Final submission: format and print all answers as required JSON
     const formattedOutput = {
-      "questions_answers": questions.map((q, index) => ({
+      questions_answers: questions.map((q) => ({
         q: q.question,
-        a: answers[q.id] || ""
-      }))
+        a: answers[q.id] || "",
+      })),
     };
-    
+
     console.log("All submitted answers:");
     console.log(JSON.stringify(formattedOutput, null, 2));
-    
+
     setIsLocked(true);
     addToast("All questions submitted successfully!", "success");
 
+    try {
 
-    const res = await fetch("http://127.0.0.1:8000/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-       body: JSON.stringify(formattedOutput),
-    })
-    const data = await res.json()
-    console.log(data)
-    setdata(data)
+      const analyzeRes = await fetch("http://127.0.0.1:8080/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formattedOutput),
+      });
 
+      const analyzedData = await analyzeRes.json();
+      console.log("Analyze Response:", analyzedData);
+      setdata(analyzedData);
+
+      // Step 2: Send analyzed data to /api/quiz/submit with Authorization
+      // const token = localStorage.getItem("token"); // assuming JWT is stored in localStorage
+
+      const submitRes = await fetch("http://127.0.0.1:8000/api/quiz/submit/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJlaGJhcmtoYW4uMjcxMUBnbWFpbC5jb20iLCJleHAiOjE3NjI0OTY2NzIsImlhdCI6MTc2MTg5MTg3Mn0.raZtyItcQ5bWqwRFUtLBl0az-TdfXOq1Zd-VrZT691M`, // add token in header
+        },
+        body: JSON.stringify(analyzedData), // send data directly as JSON
+      });
+
+      const submitResponse = await submitRes.json();
+      console.log("Quiz Submit Response:", submitResponse);
+      addToast("Quiz submitted successfully", "success");
+    } catch (error) {
+      console.error("Error during quiz submission:", error);
+      addToast("Error submitting quiz. Please try again.", "error");
+    }
   }
 };
+
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

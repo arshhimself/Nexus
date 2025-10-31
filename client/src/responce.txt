@@ -1,0 +1,58 @@
+  // const quizData = {
+  //   questions_answers: [
+  //     {
+  //       q: "You're working on a feature branch halfway through coding. Manager asks you to fix a production bug on main immediately. Your work isn't complete. What do you do?",
+  //       a: "i dont know",
+  //     },
+  //     {
+  //       q: "You accidentally committed and pushed a secret key. How do you remove it?",
+  //       a: "Use `git filter-repo` to remove from history, `git push origin --force`, and regenerate the secret immediately.",
+  //     },
+  //     {
+  //       q: "Wrong commit message but haven't pushed. How to fix?",
+  //       a: "Use `git commit --amend` to edit the message.",
+  //     },
+  //     {
+  //       q: "Multiple small commits for one change. How to merge them before pushing?",
+  //       a: "Use rebase",
+  //     },
+  //     {
+  //       q: "Got merge conflicts after pulling. How to resolve?",
+  //       a: "Run `git status`, manually resolve conflicts in files, `git add <file>`, then `git commit`.",
+  //     },
+  //     {
+  //       q: "Committed to main instead of feature branch. How to move the commit?",
+  //       a: "Create branch: `git branch feature-fix`, switch to main, run `git reset --hard origin/main`.",
+  //     },
+  //     {
+  //       q: "How to see which commit changed which lines in a file?",
+  //       a: "Use `git blame <filename>`.",
+  //     },
+  //     {
+  //       q: "Compare feature branch with main before merging?",
+  //       a: "Run `git diff main..feature-branch`.",
+  //     },
+  //     {
+  //       q: "Teammate force-pushed main. Your local main is out of sync. What to do?",
+  //       a: "Run `git fetch origin`, then `git reset --hard origin/main`.",
+  //     },
+  //     {
+  //       q: "Steps to contribute to an open-source project on GitHub?",
+  //       a: "Fork repo, clone locally, create branch, make changes, push branch, create Pull Request.",
+  //     },
+  //   ],
+  //   feedbacks: [
+  //     "The answer is not helpful at all. It does not provide any strategy or solution for addressing the situation where the developer needs to fix a production bug while working on a feature branch. Simply saying 'I don't know' does not address the question.",
+  //     "The answer correctly identifies the use of `git filter-repo` to remove sensitive data from the Git history. It also recommends the appropriate action to force push to the repository to overwrite the history. Furthermore, suggesting to regenerate the secret is a good practice when a secret has been exposed. Overall, the solution is accurate and provides good instructions for handling the situation effectively.",
+  //     "The answer is correct as it provides the appropriate command to amend a commit message before pushing. The command `git commit --amend` allows users to modify the last commit message without creating a new commit.",
+  //     "The answer is partially correct. Using 'rebase' can help squash multiple commits into one before pushing, but it might not be the clearest terminology or method for a beginner. It would have been better to mention 'git rebase -i' for interactive rebasing or provide a bit more context about squashing commits. Overall, it lacks some depth and clarity regarding the process, but it does provide a correct concept.",
+  //     "The answer is correct. It accurately describes the process of resolving merge conflicts after a pull. The steps outlined are appropriate: first checking the status to identify conflicted files, manually resolving them, staging the resolved files with `git add`, and then committing the changes. However, the answer could be improved by mentioning the use of a merge tool or the `git mergetool` command for resolving conflicts in a more user-friendly way, as well as providing further instructions on what to do in case of more complex scenarios. Overall, it's a good but somewhat basic response.",
+  //     "The answer is partially correct but incomplete. The steps provided do not fully resolve the issue of moving a commit from the main branch to a feature branch. The correct approach should involve using `git cherry-pick` to move the specific commit to the feature branch after creating it or using `git reset` with a specific commit reference rather than `origin/main`. Furthermore, running `git reset --hard` can result in the loss of the committed changes on the main branch, which could lead to data loss. It lacks clarity on how to handle the moving process and is misleading.",
+  //     "The answer is correct. `git blame <filename>` shows the author of each line along with the commit hash that changed that line, which is exactly what the question is asking. However, it lacks additional context about how to use the command or any alternative methods like `git log -p <filename>` or `git diff <commit>^ <commit> -- <filename>` for more detailed revisions. Therefore, while correct, the answer could be more informative.",
+  //     "The answer is correct; it accurately specifies the command needed to compare the differences between the main branch and the feature branch before merging. The use of `git diff` is appropriate for showing changes. However, it could be improved by specifying whether the context is that you should be on the main branch or the feature branch when running the command, but this isn't strictly necessary. Overall, it's a good answer.",
+  //     "The answer is correct; however, it does not mention that running `git reset --hard` will discard any local changes on the main branch. It should also include a warning to make sure local changes are saved or committed elsewhere before performing this command.",
+  //     "The provided answer accurately outlines the essential steps needed to contribute to an open-source project on GitHub. It mentions forking the repository, cloning it locally, creating a new branch for changes, pushing the branch to the repository, and finally creating a pull request – all of which are crucial steps in the contribution process. Therefore, this answer is concise and correct.",
+  //   ],
+  //   scores: [0, 10, 10, 6, 8, 4, 8, 8, 9, 10],
+  //   avg_score: 7.3,
+  // }

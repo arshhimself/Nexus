@@ -162,6 +162,13 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',  # adds web view
     ),
 }
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    'https://nexus-ccz0.onrender.com',  # Render backend domain
+    'https://nexus-rcoe.vercel.app',
+]
+
 
 ALLOWED_HOSTS = [
     'nexus-ccz0.onrender.com',  # Render backend domain
