@@ -1,1 +1,8 @@
 venv
+client.json
+service-account.json
+service.json
+token.json
+__pycache__/
+*.pyc
+.DS_Store
