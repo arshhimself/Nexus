@@ -75,7 +75,7 @@ const handleClick = async () => {
     const data = await response.json();
     setUserData(data);
     console.log(data)
-    if (!userData.test_given) {
+    if (!data.test_given) {
       const updateResponse = await fetch(
         `https://nexus-ccz0.onrender.com/api/authentication/update-test-status/`,
         {
