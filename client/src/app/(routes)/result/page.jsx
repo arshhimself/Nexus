@@ -9,7 +9,7 @@ export default function QuizResultsPage() {
 
   const fetchQuizResults = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/quiz/submit/", {
+      const res = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
         method: "GET",
         headers: {
           Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJlaGJhcmtoYW4uMjcxMUBnbWFpbC5jb20iLCJleHAiOjE3NjI0OTY2NzIsImlhdCI6MTc2MTg5MTg3Mn0.raZtyItcQ5bWqwRFUtLBl0az-TdfXOq1Zd-VrZT691M`,

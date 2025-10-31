@@ -247,7 +247,7 @@ const handleSubmitQuestion = async () => {
 
     try {
 
-      const analyzeRes = await fetch("http://127.0.0.1:8080/analyze", {
+      const analyzeRes = await fetch("https://nexus-model.onrender.com/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formattedOutput),
@@ -260,7 +260,7 @@ const handleSubmitQuestion = async () => {
       // Step 2: Send analyzed data to /api/quiz/submit with Authorization
       // const token = localStorage.getItem("token"); // assuming JWT is stored in localStorage
 
-      const submitRes = await fetch("http://127.0.0.1:8000/api/quiz/submit/", {
+      const submitRes = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
