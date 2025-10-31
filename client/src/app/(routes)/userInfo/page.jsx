@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import GitHubCalendar from "react-github-calendar"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/app/context/AuthContext";
@@ -9,7 +9,7 @@ import { LoaderOne } from "@/components/ui/loader";
 export default function ProfilePage() {
         const { isLoggedIn, logout } = useAuth();
     
-  const searchParams = useSearchParams()
+
   const router = useRouter()
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -154,7 +154,11 @@ export default function ProfilePage() {
         {/* Logout Button */}
         <div className="flex justify-center pt-10">
           <button
-            onClick={logout}
+            onClick={() => {
+  logout();
+  router.push("/");
+}}
+
             className="px-6 py-3 text-sm font-semibold text-cyan-400 border border-cyan-400/40 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 hover:text-cyan-300 transition-all duration-300 backdrop-blur-sm"
           >
             Logout

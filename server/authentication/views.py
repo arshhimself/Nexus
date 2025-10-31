@@ -236,6 +236,35 @@ class PasswordResetView(APIView):
 
 
 
+
+
+class UpdateTestGivenView(APIView):
+    def patch(self, request):
+        token = request.headers.get('Authorization')
+
+        if not token:
+            raise AuthenticationFailed('Unauthenticated!')
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Token expired!')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Invalid token!')
+
+        user = User.objects.filter(email=payload['email']).first()
+        if not user:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user.test_given = True
+        user.save()
+
+        return Response(
+            {"message": "Test status updated successfully!", "test_given": user.test_given},
+            status=status.HTTP_200_OK
+        )
+    
+      
 class UserView(APIView):
     @csrf_exempt
     def get(self, request):
@@ -325,3 +354,5 @@ class UserView(APIView):
                 html_message=html_message,
             )
         return Response({"message": "Your account has been deleted successfully"}, status=status.HTTP_200_OK)
+    
+    
