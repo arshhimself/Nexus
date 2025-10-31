@@ -20,6 +20,7 @@ from .views import health_check
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/authentication/',include('authentication.urls')),
+    path('api/',include('quiz.urls')),
     path('',health_check),
     
 
