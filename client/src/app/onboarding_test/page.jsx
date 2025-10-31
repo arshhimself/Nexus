@@ -3,10 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderOne } from "@/components/ui/loader";
+
 export default function ProctoredTestPage() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const [showLoader, setShowLoader] = useState(true)
+  const mediaRecorderRef = useRef(null); // 🎥 Added for Recording
+  const recordedChunksRef = useRef([]); // 🎥 Added for Recording
+
+  const [showLoader, setShowLoader] = useState(true);
   const [cameraAccess, setCameraAccess] = useState(null);
   const [testStarted, setTestStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -54,9 +58,7 @@ export default function ProctoredTestPage() {
           audio: false,
         });
 
-        // Save stream to ref. We will attach it to the video element when it mounts.
         streamRef.current = stream;
-
         setCameraAccess(true);
       } catch (error) {
         console.error("Camera access denied:", error);
@@ -67,7 +69,6 @@ export default function ProctoredTestPage() {
     initializeCamera();
 
     return () => {
-      // Stop tracks from the stored stream (if any)
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
@@ -75,30 +76,22 @@ export default function ProctoredTestPage() {
     };
   }, []);
 
-
   useEffect(() => {
-  if (isLocked && testStarted) {
-    const timer = setTimeout(() => setShowLoader(false), 5000) // 5 seconds
-    return () => clearTimeout(timer)
-  }
-}, [isLocked, testStarted])
-  // Attach stream to video element when both are available and ensure playback starts
+    if (isLocked && testStarted) {
+      const timer = setTimeout(() => setShowLoader(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLocked, testStarted]);
+
   useEffect(() => {
     if (cameraAccess === true && videoRef.current && streamRef.current) {
       try {
-        // Only set if not already set
         if (videoRef.current.srcObject !== streamRef.current) {
           videoRef.current.srcObject = streamRef.current;
         }
-        // Attempt to play (some browsers require an explicit play())
         const playPromise = videoRef.current.play();
-        if (playPromise && playPromise.catch) {
-          playPromise.catch(() => {
-            // ignore play errors (autoplay policy), video element will be ready
-          });
-        }
+        if (playPromise && playPromise.catch) playPromise.catch(() => {});
       } catch (err) {
-        // Fail silently but log for debugging
         console.warn("Unable to attach stream to video element:", err);
       }
     }
@@ -113,6 +106,7 @@ export default function ProctoredTestPage() {
           clearInterval(timerRef.current);
           setIsLocked(true);
           addToast("⏰ Time's up! Test submitted.", "error");
+          stopRecording(); // 🎥 Stop recording on time-up
           return 0;
         }
         return prev - 1;
@@ -130,17 +124,12 @@ export default function ProctoredTestPage() {
     }, 4000);
   };
 
-  // Tab visibility detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         visibilityRef.current = false;
-        if (!isLocked) {
-          triggerWarning();
-        }
-      } else {
-        visibilityRef.current = true;
-      }
+        if (!isLocked) triggerWarning();
+      } else visibilityRef.current = true;
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -148,25 +137,23 @@ export default function ProctoredTestPage() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isLocked, warnings]);
 
-  // Trigger warning and update counter
   const triggerWarning = () => {
     setWarnings((prev) => {
       const newWarnings = prev + 1;
       addToast(
         `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
-        "warning",
+        "warning"
       );
 
       if (newWarnings >= 3) {
         setIsLocked(true);
+        stopRecording(); // 🎥 Stop recording on lock
         addToast("Test locked due to multiple warnings", "error");
       }
-
       return newWarnings;
     });
   };
 
-  // Disable security-sensitive actions
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
     const handleKeyDown = (e) => {
@@ -178,9 +165,8 @@ export default function ProctoredTestPage() {
           (e.key === "c" || e.key === "v" || e.key === "x" || e.key === "u")) ||
         (e.ctrlKey && e.shiftKey && e.key === "i") ||
         e.key === "F12"
-      ) {
+      )
         e.preventDefault();
-      }
     };
 
     document.addEventListener("contextmenu", handleContextMenu);
@@ -192,7 +178,6 @@ export default function ProctoredTestPage() {
     };
   }, []);
 
-  // Disable copy/paste
   useEffect(() => {
     const handleCopy = (e) => e.preventDefault();
     const handlePaste = (e) => e.preventDefault();
@@ -212,80 +197,120 @@ export default function ProctoredTestPage() {
   const handleStartTest = () => {
     if (cameraAccess === true) {
       setTestStarted(true);
-      addToast(
-        "Test started. Answer each question and submit to continue.",
-        "success",
-      );
+      addToast("Test started. Answer each question and submit to continue.", "success");
+      startRecording(); // 🎥 Start recording when test starts
     }
   };
 
-const handleSubmitQuestion = async () => {
-  const qId = questions[currentQuestionIndex].id;
-  const answer = answers[qId];
+  const handleSubmitQuestion = async () => {
+    const qId = questions[currentQuestionIndex].id;
+    const answer = answers[qId];
+    if (!answer) {
+      addToast("Please answer the question before submitting.", "warning");
+      return;
+    }
 
-  if (!answer) {
-    addToast("Please answer the question before submitting.", "warning");
-    return;
-  }
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+      addToast("Answer submitted. Next question loaded.", "success");
+    } else {
+      const formattedOutput = {
+        questions_answers: questions.map((q) => ({
+          q: q.question,
+          a: answers[q.id] || "",
+        })),
+      };
 
-  if (currentQuestionIndex < questions.length - 1) {
-    setCurrentQuestionIndex((prev) => prev + 1);
-    addToast("Answer submitted. Next question loaded.", "success");
-  } else {
-    const formattedOutput = {
-      questions_answers: questions.map((q) => ({
-        q: q.question,
-        a: answers[q.id] || "",
-      })),
+      console.log("All submitted answers:");
+      console.log(JSON.stringify(formattedOutput, null, 2));
+
+      setIsLocked(true);
+      stopRecording(); // 🎥 Stop recording when test finishes
+      addToast("All questions submitted successfully!", "success");
+
+      try {
+        const analyzeRes = await fetch("https://nexus-model.onrender.com/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formattedOutput),
+        });
+
+        const analyzedData = await analyzeRes.json();
+        setdata(analyzedData);
+
+        const token = localStorage.getItem("token");
+        const submitRes = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+          body: JSON.stringify(analyzedData),
+        });
+
+        const submitResponse = await submitRes.json();
+        console.log("Quiz Submit Response:", submitResponse);
+        addToast("Quiz submitted successfully", "success");
+      } catch (error) {
+        console.error("Error during quiz submission:", error);
+        addToast("Error submitting quiz. Please try again.", "error");
+      }
+    }
+  };
+
+  // 🎥 RECORDING FUNCTIONS
+  const startRecording = () => {
+    if (!streamRef.current) return;
+    recordedChunksRef.current = [];
+    const mediaRecorder = new MediaRecorder(streamRef.current, {
+      mimeType: "video/webm; codecs=vp9",
+    });
+    mediaRecorderRef.current = mediaRecorder;
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunksRef.current.push(e.data);
     };
 
-    console.log("All submitted answers:");
-    console.log(JSON.stringify(formattedOutput, null, 2));
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+      const file = new File([blob], "proctored_test_recording.webm", { type: "video/webm" });
+      await uploadToServer(file);
+    };
 
-    setIsLocked(true);
-    addToast("All questions submitted successfully!", "success");
+    mediaRecorder.start();
+    console.log("🎥 Recording started...");
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+      console.log("🎥 Recording stopped.");
+    }
+  };
+
+  const uploadToServer = async (file) => {
+    const formData = new FormData();
+    formData.append("video", file);
 
     try {
-
-      const analyzeRes = await fetch("https://nexus-model.onrender.com/analyze", {
+      const res = await fetch("http://127.0.0.1:8000/upload-video/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formattedOutput),
+        body: formData,
       });
-
-      const analyzedData = await analyzeRes.json();
-      console.log("Analyze Response:", analyzedData);
-      setdata(analyzedData);
-
-      // Step 2: Send analyzed data to /api/quiz/submit with Authorization
- const token = localStorage.getItem("token");
-
-      const submitRes = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`, // add token in header
-        },
-        body: JSON.stringify(analyzedData), // send data directly as JSON
-      });
-
-      const submitResponse = await submitRes.json();
-      console.log("Quiz Submit Response:", submitResponse);
-      addToast("Quiz submitted successfully", "success");
-    } catch (error) {
-      console.error("Error during quiz submission:", error);
-      addToast("Error submitting quiz. Please try again.", "error");
+      const data = await res.json();
+      console.log("🎥 Upload success:", data);
+    } catch (err) {
+      console.error("🎥 Upload error:", err);
+      addToast("Error uploading video recording", "error");
     }
-  }
-};
-
+  };
+  // 🎥 END RECORDING
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
-
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Grid background */}
