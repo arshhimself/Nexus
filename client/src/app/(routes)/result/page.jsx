@@ -6,9 +6,10 @@ import { useEffect, useState } from "react"
 export default function QuizResultsPage() {
   const [quizData, setQuizData] = useState(null)
   const [loading, setLoading] = useState(true)
- const token = localStorage.getItem("token");
 
   const fetchQuizResults = async () => {
+ if (typeof window === "undefined") return; // prevent SSR crash
+  const token = localStorage.getItem("token");
     try {
       const res = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
         method: "GET",
