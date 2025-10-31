@@ -6,8 +6,10 @@ import { cn } from "@/lib/utils";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/context/AuthContext";
+import { useSearchParams, useRouter } from "next/navigation"
 
 export default function SignupFormDemo() {
+    const router = useRouter()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,7 @@ if (res.ok) {
   console.log(data.jwt);
   login(data.jwt);
   toast.success("Login successful!");
+    router.push("/");
 } else {
   const errorData = await res.json();
   console.error("Login failed:", errorData);

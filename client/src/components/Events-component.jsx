@@ -5,9 +5,9 @@ import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
 import { useRouter } from 'next/navigation'
 import { toast } from "sonner";
 import { useAuth } from "@/app/context/AuthContext";
-
+import { useEffect, useState } from "react"
 export function Events() {
-  
+
   const cards = data.map((card, index) => (
     <Card key={card.src} card={card} index={index} />
   ));
@@ -48,14 +48,52 @@ const DummyContent = () => {
 
 };
 const Textcontent = () => {
+  const [userData, setUserData] = useState(null)  
   const { isLoggedIn, login, logout } = useAuth();
 
-  const handleClick = () => {
-    if (isLoggedIn) {
-      router.push("/onboarding_test")
+  const handleClick = async() => {
+
+
+const token = localStorage.getItem("token")
+try {
+
+  const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/user`, {
+    method: "GET",
+    headers: {
+      Authorization: `${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch user data");
+  }
+
+  const data = await response.json();
+  setUserData(data);
+
+
+  if (isLoggedIn) {
+    if (!data.test_given) {
+       const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/update-test-status/`, {
+    method: "GET",
+    headers: {
+      Authorization: `${token}`,
+    },
+  });
+      router.push("/onboarding_test");
     } else {
-      toast.error("Please login first!")
+      toast.error("You have already given the test");
     }
+  } else {
+    toast.error("Please login first!");
+  }
+
+} catch (err) {
+  console.log("Error fetching user data:", err);
+} finally {
+
+}
+
   }
   const router = useRouter()
   return (

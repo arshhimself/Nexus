@@ -154,7 +154,11 @@ export default function ProfilePage() {
         {/* Logout Button */}
         <div className="flex justify-center pt-10">
           <button
-            onClick={logout}
+            onClick={() => {
+  logout();
+  router.push("/");
+}}
+
             className="px-6 py-3 text-sm font-semibold text-cyan-400 border border-cyan-400/40 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 hover:text-cyan-300 transition-all duration-300 backdrop-blur-sm"
           >
             Logout
