@@ -2,8 +2,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
-
+import { useAuth } from "@/app/context/AuthContext";
 export default function NavBar() {
+    const { isLoggedIn, logout } = useAuth();
+
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
 
@@ -160,14 +162,29 @@ export default function NavBar() {
           </nav>
 
           {/* Sidebar Footer */}
-          <div className="p-6 border-t border-white/10">
-            <button
-              onClick={() => handleNavigation('/login')}
-              className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
-            >
-              Login
-            </button>
-          </div>
+          
+          {
+  isLoggedIn ? (
+    <div className="p-6 border-t border-white/10">
+      <button
+        onClick={logout}
+        className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
+      >
+        Logout
+      </button>
+    </div>
+  ) : (
+    <div className="p-6 border-t border-white/10">
+      <button
+        onClick={() => handleNavigation('/login')}
+        className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
+      >
+        Login
+      </button>
+    </div>
+  )
+}
+
         </div>
       </aside>
     </>

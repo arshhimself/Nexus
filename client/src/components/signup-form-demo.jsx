@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function SignupFormDemo() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +32,7 @@ export default function SignupFormDemo() {
 if (res.ok) {
   const data = await res.json();
   console.log(data.jwt);
-  localStorage.setItem("token", data.jwt); // ✅ JWT store in localStorage
+  login(data.jwt);
   toast.success("Login successful!");
 } else {
   const errorData = await res.json();
