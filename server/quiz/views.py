@@ -6,8 +6,10 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
-from .models import User, QuizResult
+from .models import  QuizResult
 from .serializers import QuizResultSerializer
+from authentication.models import User
+
 
 class QuizResultView(APIView):
 
@@ -29,6 +31,7 @@ class QuizResultView(APIView):
         serializer = QuizResultSerializer(user.quiz_results.all(), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
     @csrf_exempt
     def post(self, request):
         token = request.headers.get('Authorization')
@@ -46,16 +49,28 @@ class QuizResultView(APIView):
         if not user:
             raise AuthenticationFailed('User not found!')
 
-        # Get data from frontend (JSON)
-        quiz_data = request.data  # full JSON from frontend (quizData)
-        print("Received quiz data:", quiz_data)
 
-        # Save it directly to the model (store JSON as-is)
-        quiz_result = QuizResult.objects.create(
-            user=user,
-            data=quiz_data,  # assuming JSONField in model
-            created_at=timezone.now()
-        )
+        quiz_data = request.data
+
+
+
+        existing_result = QuizResult.objects.filter(user=user).first()
+
+        if existing_result:
+            # Update existing JSON
+            existing_result.data = quiz_data
+            existing_result.created_at = timezone.now()
+            existing_result.save()
+            quiz_result = existing_result
+
+        else:
+            # Create new entry
+            quiz_result = QuizResult.objects.create(
+                user=user,
+                data=quiz_data,
+                created_at=timezone.now()
+            )
+
 
         serializer = QuizResultSerializer(quiz_result)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

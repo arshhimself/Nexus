@@ -236,7 +236,7 @@ const handleSubmitQuestion = async() => {
     };
     
     console.log("All submitted answers:");
-    // console.log(JSON.stringify(formattedOutput, null, 2));
+    console.log(JSON.stringify(formattedOutput, null, 2));
     
     setIsLocked(true);
     addToast("All questions submitted successfully!", "success");
@@ -248,6 +248,7 @@ const handleSubmitQuestion = async() => {
        body: JSON.stringify(formattedOutput),
     })
     const data = await res.json()
+    console.log(data)
     setdata(data)
 
   }
