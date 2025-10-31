@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
+import { toast } from "sonner";
 
 export default function SignupFormDemo() {
   const [email, setEmail] = useState("");
@@ -26,18 +27,19 @@ export default function SignupFormDemo() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        console.log("Login successful:", data);
-        alert("Login successful!");
-      } else {
-        const errorData = await res.json();
-        console.error(" Login failed:", errorData);
-        alert(errorData.detail || "Login failed");
-      }
+if (res.ok) {
+  const data = await res.json();
+  console.log(data.jwt);
+  localStorage.setItem("token", data.jwt); // ✅ JWT store in localStorage
+  toast.success("Login successful!");
+} else {
+  const errorData = await res.json();
+  console.error("Login failed:", errorData);
+  toast.error(errorData.detail || "Login failed");
+}
     } catch (err) {
       console.error("⚠️ Error:", err);
-      alert("Server error");
+      toast.error("Server error");
     } finally {
       setLoading(false);
     }

@@ -258,13 +258,13 @@ const handleSubmitQuestion = async () => {
       setdata(analyzedData);
 
       // Step 2: Send analyzed data to /api/quiz/submit with Authorization
-      // const token = localStorage.getItem("token"); // assuming JWT is stored in localStorage
+ const token = localStorage.getItem("token");
 
       const submitRes = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJlaGJhcmtoYW4uMjcxMUBnbWFpbC5jb20iLCJleHAiOjE3NjI0OTY2NzIsImlhdCI6MTc2MTg5MTg3Mn0.raZtyItcQ5bWqwRFUtLBl0az-TdfXOq1Zd-VrZT691M`, // add token in header
+          Authorization: `${token}`, // add token in header
         },
         body: JSON.stringify(analyzedData), // send data directly as JSON
       });
