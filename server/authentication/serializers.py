@@ -4,8 +4,7 @@ from django.utils import timezone
 
 
 class UserSerializer(serializers.ModelSerializer):
-    confirm_password = serializers.CharField(write_only=True)
-    otp = serializers.CharField(write_only=True, required=False)
+    
 
     
     class Meta:
@@ -15,13 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
             'name',
             'email',
             'password',
-            'confirm_password',
-            'otp',
-            'is_staff',
-            'aadhar_number',
-            'is_doctor',
-            'is_medical_store',
-            'medicines',
+            'github',
+            'linkedin',
+            'test_given'
             ]
         extra_kwargs = {
             'password': {'write_only': True},

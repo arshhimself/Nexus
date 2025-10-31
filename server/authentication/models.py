@@ -17,6 +17,9 @@ class User(AbstractBaseUser,PermissionsMixin):
     session_id = models.CharField(max_length=255, null=True, blank=True)
     is_doctor = models.BooleanField(default=False)
     is_medical_store = models.BooleanField(default=False)
+    github = models.URLField(blank=True, null=True, default=None)
+    linkedin = models.URLField(blank=True, null=True, default=None)
+    test_given = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     objects = CustomUserManager()

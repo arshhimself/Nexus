@@ -260,7 +260,7 @@ class UserView(APIView):
             raise AuthenticationFailed('Invalid token!')
 
         user = User.objects.filter(email=payload['email']).first()
-        serializer = userSerializers(user)
+        serializer = UserSerializer(user)
 
         return Response(serializer.data)
 
