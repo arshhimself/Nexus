@@ -29,10 +29,10 @@ const DummyContent = () => {
         return (
           <div
             key={"dummy-content"}
-            className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
+            className="bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
             <p
-              className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto">
-              <span className="font-bold text-neutral-700 dark:text-neutral-200">
+              className="text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto">
+              <span className="font-bold text-neutral-200">
                 Nexus Events
               </span>{" "}
              Stay tuned for our next Nexus community event! As part of our ongoing initiative to promote open-source culture, we’ll soon be hosting an engaging session designed to help you learn, collaborate, and grow with like-minded developers. Details will be announced soon — get ready to be part of something exciting!
@@ -102,9 +102,9 @@ const handleClick = async () => {
 
   const router = useRouter()
   return (
-    <div className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
-      <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto text-center">
-        <span className="font-bold text-neutral-700 dark:text-neutral-200">
+    <div className="bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
+      <p className="text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto text-center">
+        <span className="font-bold text-neutral-200">
           Test Description:
         </span>{" "}
         As instructed before, participants were encouraged to explore GitHub and brush up on their skills. This test marks the next step — an opportunity to assess how well you’ve understood and retained what you learned. It’s a short, focused evaluation designed to reinforce practical understanding and ensure everyone is ready to collaborate effectively in the open-source environment.
@@ -124,7 +124,7 @@ const handleClick = async () => {
         <>
           <button
             onClick={handleClick}
-            className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-white transition-all duration-300 bg-gradient-to-r from-neutral-800 to-neutral-700 rounded-xl hover:from-neutral-700 hover:to-neutral-600 group"
+            className="relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-black transition-all duration-300 bg-neutral-300  rounded-xl hover:from-neutral-700 hover:to-neutral-600 group"
           >
             <span className="absolute inset-0 w-full h-full transition-all duration-300 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 blur-lg"></span>
             <span className="relative z-10">Give Test</span>
@@ -133,7 +133,7 @@ const handleClick = async () => {
           <br />
 
           <button
-            className="relative m-5 inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-white transition-all duration-300 bg-gradient-to-r from-neutral-800 to-neutral-700 rounded-xl hover:from-neutral-700 hover:to-neutral-600 group"
+            className="relative m-5 inline-flex items-center justify-center px-8 py-3 overflow-hidden font-semibold text-black transition-all duration-300 bg-neutral-300 rounded-xl hover:from-neutral-700 hover:to-neutral-600 group"
             onClick={() => {
               router.push("/leaderboard");
             }}

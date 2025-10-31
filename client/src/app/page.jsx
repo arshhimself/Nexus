@@ -40,12 +40,12 @@ function Hero() {
             Join the Community
           </button>
 
-          <a
-            href="#about"
+          <button
+            onClick={()=>{router.push('/about')}}
             className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-xl border border-neutral-700 text-neutral-200 hover:border-neutral-500 transition text-sm sm:text-base font-medium"
           >
             Learn More
-          </a>
+          </button>
         </div>
       </div>
     </section>
