@@ -18,6 +18,12 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token")
+      console.log("Using token:", token)
+      
+      if (!token) {
+        router.push("/login")
+        return
+      }
       try {
         setLoading(true)
         const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/user`, {
@@ -26,6 +32,7 @@ export default function ProfilePage() {
             Authorization: `${token}`,
           },
         })
+        console.log("Fetch response status:", response.status)
 
         if (!response.ok) {
           throw new Error("Failed to fetch user data")
