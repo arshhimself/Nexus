@@ -1,30 +1,91 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import GitHubCalendar from "react-github-calendar"
 import { useEffect, useState } from "react"
-
+import { useAuth } from "@/app/context/AuthContext";
+import { LoaderOne } from "@/components/ui/loader";
 export default function ProfilePage() {
+        const { isLoggedIn, logout } = useAuth();
+    
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [userData, setUserData] = useState(null)
-
-  const githubUsername = searchParams.get("username") || "torvalds"
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    setUserData({
-      name: githubUsername.charAt(0).toUpperCase() + githubUsername.slice(1),
-      email: `${githubUsername}@example.com`,
-      phone: "+1 (555) 123-4567",
-      github: githubUsername,
-      linkedin: githubUsername,
-    })
-  }, [githubUsername])
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("token")
+      try {
+        setLoading(true)
+        const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/user`, {
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data")
+        }
+
+        const data = await response.json()
+        setUserData(data)
+      } catch (err) {
+        setError(err.message)
+        console.log("Error fetching user data:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
+  const extractGitHubUsername = (githubUrl) => {
+    if (!githubUrl) return "torvalds"
+    const match = githubUrl.match(/github\.com\/([^/]+)/)
+    return match ? match[1] : "torvalds"
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    router.push("/login")
+  }
+
+  if (loading) {
+    return (
+      <div className="relative flex min-h-screen w-full items-center justify-center bg-black p-5">
+ <LoaderOne />;
+       
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="relative flex min-h-screen w-full items-center justify-center bg-black p-5">
+        <div
+          className={cn(
+            "absolute inset-0",
+            "[background-size:20px_20px]",
+            "[background-image:radial-gradient(#404040_1px,transparent_1px)]",
+          )}
+        />
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] bg-black" />
+        <div className="relative z-10 text-red-400">Error: {error}</div>
+      </div>
+    )
+  }
 
   if (!userData) return null
 
+  const githubUsername = extractGitHubUsername(userData.github)
+
   return (
-    <div className="relative pt-[15vh] flex min-h-screen w-full items-center justify-center bg-black p-5">
+    <div className="relative flex pt-[15vh] min-h-screen w-full flex-col items-center justify-start bg-black p-5">
       {/* Grid background */}
       <div
         className={cn(
@@ -34,58 +95,32 @@ export default function ProfilePage() {
         )}
       />
 
-      {/* Radial gradient fade effect */}
+      {/* Radial fade */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] bg-black" />
 
-      {/* Profile container */}
+      {/* Profile Content */}
       <div className="relative z-10 w-full max-w-4xl space-y-8">
-        {/* Header section with name and title */}
         <div className="text-center">
           <h1 className="text-5xl font-bold text-white">{userData.name}</h1>
           <p className="mt-2 text-sm text-gray-400">Developer Profile</p>
         </div>
 
-        {/* Info cards grid */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Email Card */}
-          <div className="group rounded-lg border border-gray-800 bg-black/50 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/50 hover:bg-cyan-500/5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Email</p>
-            <p className="mt-3 font-mono text-white break-all">{userData.email}</p>
-          </div>
-
-          {/* Phone Card */}
-          <div className="group rounded-lg border border-gray-800 bg-black/50 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/50 hover:bg-cyan-500/5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Phone</p>
-            <p className="mt-3 font-mono text-white">{userData.phone}</p>
-          </div>
-
-          {/* GitHub Card */}
-          <div className="group rounded-lg border border-gray-800 bg-black/50 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/50 hover:bg-cyan-500/5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">GitHub</p>
-            <a
-              href={`https://github.com/${userData.github}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
-            >
-              @{userData.github}
-            </a>
-          </div>
-
-          {/* LinkedIn Card */}
-          <div className="group rounded-lg border border-gray-800 bg-black/50 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/50 hover:bg-cyan-500/5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">LinkedIn</p>
-            <a
-              href={`https://linkedin.com/in/${userData.linkedin}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
-            >
-              {userData.linkedin}
-            </a>
-          </div>
+          <InfoCard label="Email" value={userData.email} href={`mailto:${userData.email}`} />
+          <InfoCard label="Phone" value={userData.phone} href={`tel:${userData.phone}`} />
+          <InfoCard
+            label="GitHub"
+            value={`@${githubUsername}`}
+            href={userData.github}
+          />
+          <InfoCard
+            label="LinkedIn"
+            value={userData.linkedin.split("/in/")[1] || userData.linkedin}
+            href={userData.linkedin}
+          />
         </div>
 
+        {/* GitHub Contribution Graph */}
         <div className="rounded-lg border border-gray-800 bg-black/50 p-8 backdrop-blur-sm">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-white">Contribution Graph</h2>
@@ -115,7 +150,33 @@ export default function ProfilePage() {
             <GitHubCalendar username={githubUsername} colorScheme="dark" />
           </div>
         </div>
+
+        {/* Logout Button */}
+        <div className="flex justify-center pt-10">
+          <button
+            onClick={logout}
+            className="px-6 py-3 text-sm font-semibold text-cyan-400 border border-cyan-400/40 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 hover:text-cyan-300 transition-all duration-300 backdrop-blur-sm"
+          >
+            Logout
+          </button>
+        </div>
       </div>
+    </div>
+  )
+}
+
+function InfoCard({ label, value, href }) {
+  return (
+    <div className="group rounded-lg border border-gray-800 bg-black/50 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/50 hover:bg-cyan-500/5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</p>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 block font-mono text-cyan-400 hover:text-cyan-300 transition-colors break-all"
+      >
+        {value}
+      </a>
     </div>
   )
 }

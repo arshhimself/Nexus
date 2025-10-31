@@ -76,10 +76,10 @@ export default function NavBar() {
               <div className="hidden md:flex items-center space-x-6">
   {isLoggedIn ? (
     <button
-      onClick={logout}
+      onClick={() => router.push('/userInfo')}
       className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
     >
-      Logout
+     User Profile
     </button>
   ) : (
     <button
@@ -178,10 +178,10 @@ export default function NavBar() {
   isLoggedIn ? (
     <div className="p-6 border-t border-white/10">
       <button
-        onClick={logout}
+         onClick={() => router.push('/userInfo')}
         className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
       >
-        Logout
+        User Profile
       </button>
     </div>
   ) : (

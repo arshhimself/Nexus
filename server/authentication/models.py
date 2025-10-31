@@ -20,6 +20,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     github = models.URLField(blank=True, null=True, default=None)
     linkedin = models.URLField(blank=True, null=True, default=None)
     test_given = models.BooleanField(default=False)
+    phone = models.CharField(max_length=15, blank=True, null=True, default=None) 
 
     USERNAME_FIELD = 'email'
     objects = CustomUserManager()
