@@ -4,8 +4,10 @@ import React from "react";
 import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
 import { useRouter } from 'next/navigation'
 import { toast } from "sonner";
+import { useAuth } from "@/app/context/AuthContext";
 
 export function Events() {
+  
   const cards = data.map((card, index) => (
     <Card key={card.src} card={card} index={index} />
   ));
@@ -46,6 +48,7 @@ const DummyContent = () => {
 
 };
 const Textcontent = () => {
+  const { isLoggedIn, login, logout } = useAuth();
 
   const handleClick = () => {
     if (isLoggedIn) {

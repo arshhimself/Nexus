@@ -3,6 +3,7 @@ import React from "react";
 import { useRouter } from 'next/navigation'
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { Events } from "@/components/Events-component";
+
 function Hero() {
   const router = useRouter()
   const handleClick = () => {

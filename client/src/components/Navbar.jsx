@@ -74,13 +74,24 @@ export default function NavBar() {
               
               {/* Desktop Action */}
               <div className="hidden md:flex items-center space-x-6">
-                <button
-                  onClick={() => router.push('/login')}
-                  className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
-                >
-                  Login
-                </button>
-              </div>
+  {isLoggedIn ? (
+    <button
+      onClick={logout}
+      className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
+    >
+      Logout
+    </button>
+  ) : (
+    <button
+      onClick={() => router.push('/login')}
+      className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
+    >
+      Login
+    </button>
+  )}
+</div>
+
+
 
               {/* Mobile Menu Button */}
               <button
