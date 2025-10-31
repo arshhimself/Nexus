@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import GitHubCalendar from "react-github-calendar"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/app/context/AuthContext";
@@ -9,7 +9,7 @@ import { LoaderOne } from "@/components/ui/loader";
 export default function ProfilePage() {
         const { isLoggedIn, logout } = useAuth();
     
-  const searchParams = useSearchParams()
+
   const router = useRouter()
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)

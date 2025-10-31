@@ -71,22 +71,39 @@ try {
   const data = await response.json();
   setUserData(data);
 
+if (isLoggedIn) {
+  if (!userData?.test_given) {
+    try {
+      const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/update-test-status/`, {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
 
-  if (isLoggedIn) {
-    if (!data.test_given) {
-       const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/update-test-status/`, {
-    method: "GET",
-    headers: {
-      Authorization: `${token}`,
-    },
-  });
+      if (!response.ok) {
+        const errData = await response.json();
+        console.log("API error:", errData);
+        toast.error("Failed to update test status!");
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Test status updated:", result);
+
+      // Only navigate when API succeeded
       router.push("/onboarding_test");
-    } else {
-      toast.error("You have already given the test");
+    } catch (err) {
+      console.log("Error in test:", err);
+      toast.error("Something went wrong!");
     }
   } else {
-    toast.error("Please login first!");
+    toast.error("You have already given the test");
   }
+} else {
+  toast.error("Please login first!");
+}
+
 
 } catch (err) {
   console.log("Error fetching user data:", err);
