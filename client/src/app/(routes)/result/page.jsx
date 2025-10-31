@@ -1,11 +1,11 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 
 export default function QuizResultsPage() {
-  const [quizData, setQuizData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [quizData, setQuizData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   const fetchQuizResults = async () => {
     try {
@@ -14,68 +14,81 @@ export default function QuizResultsPage() {
         headers: {
           Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJlaGJhcmtoYW4uMjcxMUBnbWFpbC5jb20iLCJleHAiOjE3NjI0OTY2NzIsImlhdCI6MTc2MTg5MTg3Mn0.raZtyItcQ5bWqwRFUtLBl0az-TdfXOq1Zd-VrZT691M`,
         },
-      });
+      })
 
-      if (!res.ok) throw new Error(`Failed to fetch results: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch results: ${res.status}`)
+      }
 
-      const data = await res.json();
-      console.log("Fetched quiz results:", data);
-      setQuizData(data);
+      const data = await res.json()
+      console.log("Fetched quiz results:", data)
+      setQuizData(data.data) // nested data object
     } catch (error) {
-      console.error("Error fetching quiz results:", error);
+      console.error("Error fetching quiz results:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchQuizResults();
-  }, []);
+    fetchQuizResults()
+  }, [])
 
   const getScoreColor = (score) => {
-    if (score >= 9) return "text-cyan-400";
-    if (score >= 7) return "text-emerald-400";
-    if (score >= 5) return "text-yellow-400";
-    return "text-red-400";
-  };
+    if (score >= 9) return "text-cyan-400"
+    if (score >= 7) return "text-emerald-400"
+    if (score >= 5) return "text-yellow-400"
+    return "text-red-400"
+  }
 
   const getScoreBgColor = (score) => {
-    if (score >= 9) return "bg-cyan-500/10";
-    if (score >= 7) return "bg-emerald-500/10";
-    if (score >= 5) return "bg-yellow-500/10";
-    return "bg-red-500/10";
-  };
+    if (score >= 9) return "bg-cyan-500/10"
+    if (score >= 7) return "bg-emerald-500/10"
+    if (score >= 5) return "bg-yellow-500/10"
+    return "bg-red-500/10"
+  }
 
-  // 🌀 Loading Screen
+  // 🌀 Loading screen
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-neutral-400">
-        <div className="animate-pulse text-lg">Fetching your quiz results...</div>
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <p className="animate-pulse text-neutral-400">Loading quiz results...</p>
       </div>
-    );
+    )
   }
 
-  // ❌ If no data
-  if (!quizData || Object.keys(quizData).length === 0) {
+  // ❌ If no data found
+  if (!quizData) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-neutral-400">
-        No quiz data found 😢
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <p>No quiz data found.</p>
       </div>
-    );
+    )
   }
 
-  // ✅ Main Render
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-start bg-black p-5 pt-[20vh]">
-      <div className={cn("absolute inset-0", "[background-size:20px_20px]", "[background-image:radial-gradient(#404040_1px,transparent_1px)]")} />
+      {/* Grid background */}
+      <div
+        className={cn(
+          "absolute inset-0",
+          "[background-size:20px_20px]",
+          "[background-image:radial-gradient(#404040_1px,transparent_1px)]",
+        )}
+      />
+
+      {/* Radial gradient overlay */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_30%,black)] bg-black" />
 
+      {/* Content */}
       <div className="relative z-10 w-full max-w-3xl">
+        {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-neutral-100 mb-2">Quiz Results</h1>
           <p className="text-sm text-neutral-500">Your performance analysis</p>
         </div>
 
+        {/* Average Score Card */}
         <div className="mb-8 rounded-lg border border-neutral-800 bg-neutral-950/50 backdrop-blur-sm p-8 text-center">
           <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Average Score</p>
           <div className="flex items-center justify-center gap-3">
@@ -89,6 +102,7 @@ export default function QuizResultsPage() {
           </p>
         </div>
 
+        {/* Questions Section */}
         <div className="space-y-4">
           <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-6">Detailed Results</h2>
 
@@ -100,6 +114,7 @@ export default function QuizResultsPage() {
                 getScoreBgColor(quizData.scores[index]),
               )}
             >
+              {/* Question Number and Score */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-neutral-400">Q{index + 1}</span>
@@ -115,13 +130,16 @@ export default function QuizResultsPage() {
                 </div>
               </div>
 
+              {/* Question */}
               <p className="text-sm text-neutral-100 mb-4 font-medium">{item.q}</p>
 
+              {/* Answer */}
               <div className="mb-4 pl-4 border-l border-neutral-700">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Your Answer</p>
                 <p className="text-sm text-neutral-300 font-mono">{item.a}</p>
               </div>
 
+              {/* Feedback */}
               <div className="pl-4 border-l border-neutral-700">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Feedback</p>
                 <p className="text-sm text-neutral-400 leading-relaxed">{quizData.feedbacks[index]}</p>
@@ -131,5 +149,5 @@ export default function QuizResultsPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
