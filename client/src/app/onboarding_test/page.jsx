@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoaderOne } from "@/components/ui/loader";
 export default function ProctoredTestPage() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-
+  const [showLoader, setShowLoader] = useState(true)
   const [cameraAccess, setCameraAccess] = useState(null);
   const [testStarted, setTestStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -74,6 +75,13 @@ export default function ProctoredTestPage() {
     };
   }, []);
 
+
+  useEffect(() => {
+  if (isLocked && testStarted) {
+    const timer = setTimeout(() => setShowLoader(false), 5000) // 5 seconds
+    return () => clearTimeout(timer)
+  }
+}, [isLocked, testStarted])
   // Attach stream to video element when both are available and ensure playback starts
   useEffect(() => {
     if (cameraAccess === true && videoRef.current && streamRef.current) {
@@ -450,35 +458,36 @@ const handleSubmitQuestion = async () => {
       </div>
 
       {/* Lock Overlay */}
-      {isLocked && testStarted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-in fade-in duration-300">
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 text-center max-w-md">
-            <h2 className="text-2xl font-bold text-white mb-3">
-              Test Completed
-            </h2>
-            <p className="text-white/60">
-              All your answers have been submitted successfully. you will
-              receive your results will be ready in seconds, Thank you for
-              participating in our test!
-            </p>
-            <button
-              onClick={(quizData) => (window.location.href = "/result")}
-              aria-label="View score"
-              className="mt-6 w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-white text-black hover:bg-black hover:text-white border border-white/10 shadow-sm active:scale-95"
-            >
-              View your score
-            </button>
-            <button
-              onClick={() => (window.location.href = "/leaderboard")}
-              aria-label="View leaderboard"
-              className="mt-6 w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-white text-black hover:bg-black hover:text-white border border-white/10 shadow-sm active:scale-95"
-            >
-              View Leaderboard
-            </button>
-            
-          </div>
-        </div>
-      )}
+{isLocked && testStarted && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-in fade-in duration-300">
+    {showLoader ? (
+<LoaderOne />
+    ) : (
+      <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 text-center max-w-md">
+        <h2 className="text-2xl font-bold text-white mb-3">Test Completed</h2>
+        <p className="text-white/60">
+          All your answers have been submitted successfully. You will receive
+          your results in a few seconds. Thank you for participating in our test!
+        </p>
+        <button
+          onClick={() => (window.location.href = "/result")}
+          aria-label="View score"
+          className="mt-6 w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-white text-black hover:bg-black hover:text-white border border-white/10 shadow-sm active:scale-95"
+        >
+          View your score
+        </button>
+        <button
+          onClick={() => (window.location.href = "/leaderboard")}
+          aria-label="View leaderboard"
+          className="mt-4 w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-white text-black hover:bg-black hover:text-white border border-white/10 shadow-sm active:scale-95"
+        >
+          View Leaderboard
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
     </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { LoaderFive } from "@/components/ui/loader";
 import { useEffect, useState } from "react"
-
 export default function QuizResultsPage() {
   const [quizData, setQuizData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -22,7 +22,8 @@ export default function QuizResultsPage() {
 
       const data = await res.json()
       console.log("Fetched quiz results:", data)
-      setQuizData(data.data) // nested data object
+setQuizData(data[0].data)
+
     } catch (error) {
       console.error("Error fetching quiz results:", error)
     } finally {
@@ -52,19 +53,19 @@ export default function QuizResultsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p className="animate-pulse text-neutral-400">Loading quiz results...</p>
+      <LoaderFive text="Generating Result..." />
       </div>
     )
   }
 
-  // ❌ If no data found
-  if (!quizData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p>No quiz data found.</p>
-      </div>
-    )
-  }
+
+  // if (!quizData) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-black text-white">
+  //       <p>No quiz data found.</p>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-start bg-black p-5 pt-[20vh]">
