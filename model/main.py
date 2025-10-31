@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, TypedDict, Annotated
@@ -12,6 +12,8 @@ from google.oauth2 import service_account
 from dotenv import load_dotenv
 import os
 import io
+from s3.main import upload_to_s3
+
 
 load_dotenv()
 
@@ -155,3 +157,26 @@ async def upload_video(file: UploadFile = File(...)):
         return {"status": "success", **result}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+@app.post("/upload/s3/")
+async def upload_file(
+    file: UploadFile = File(...), 
+    s3_file_name: str = Form(None)
+):
+    try:
+        print(f"Uploading file: {file.filename} to S3")
+        target_file_name = s3_file_name if s3_file_name else file.filename
+        print(f"Target S3 file name: {target_file_name}")
+
+        success = upload_to_s3(file.file, target_file_name)
+        print(f"S3 upload success: {success}")
+        if success:
+            return {
+                "message": f"File '{file.filename}' uploaded successfully to S3",
+                "s3_file_name": target_file_name
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Credentials not available")
+    except Exception as e:
+        print(f"Error uploading to S3: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
