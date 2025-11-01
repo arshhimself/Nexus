@@ -24,9 +24,14 @@ export default function ProctoredTestPage() {
   const timerRef = useRef(null);
 
   const [questions] = useState([
-    { id: 1, question: "What is the purpose of Git in version control?" },
-    { id: 2, question: "Explain the difference between Git and GitHub." },
-    { id: 3, question: "How do you create a new branch in Git?" },
+    { id: 1, question: "Explain the difference between Git and GitHub." },
+    { id: 2, question: "How can you revert a commit that has already been pushed to a remote repository?"   },
+    { id: 3, question: "What is a Git rebase and how is it different from merge?" },
+    { id: 4, question: "During the last hour of the hackathon, Fareed’s commit silently breaks the build. Rehbar notices, runs a couple of commands, and the project’s back to normal. What Git steps did Rehbar likely use to fix it?" },
+    { id: 5, question: "Alisha accidentally pushed her '.env' file containing sensitive credentials to GitHub. She quickly deleted it in the next commit and even considered making the repo private, but the secret is still visible in the previous commit history. Since making the repo private won’t actually fix the issue, what exact steps and git commands should Alisha follow to permanently remove the sensitive data from Git history?" },
+    { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
+    { id: 7, question: "Tanushree pushes her half-written code right before Rehbar merges his PR.Merge conflicts explode across 12 files ,Fareed wants a clean rebase to merge without losing work.Which exact rebase workflow should Fareed use to merge both PRs while keeping linear commit history?" },
+    { id: 8, question: "Afraa forked the repo six months ago.Fareed refactored main completely.Now she wants to sync her fork and create a PR.Rehbar’s scripts detect 894 conflicts.What’s the correct process for Afraa to sync her fork with upstream while preserving her local work and avoiding conflict hell?" }
   ]);
 
   const [answers, setAnswers] = useState({});
