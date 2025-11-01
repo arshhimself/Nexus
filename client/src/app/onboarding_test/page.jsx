@@ -31,7 +31,7 @@ export default function ProctoredTestPage() {
     { id: 5, question: "Alisha accidentally pushed her '.env' file containing sensitive credentials to GitHub. She quickly deleted it in the next commit and even considered making the repo private, but the secret is still visible in the previous commit history. Since making the repo private won’t actually fix the issue, what exact steps and git commands should Alisha follow to permanently remove the sensitive data from Git history?" },
     { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
     { id: 7, question: "Tanushree pushes her half-written code right before Rehbar merges his PR.Merge conflicts explode across 12 files ,Fareed wants a clean rebase to merge without losing work.Which exact rebase workflow should Fareed use to merge both PRs while keeping linear commit history?" },
-    { id: 8, question: "Afraa forked the repo six months ago.Fareed refactored main completely.Now she wants to sync her fork and create a PR.Rehbar’s scripts detect 894 conflicts.What’s the correct process for Afraa to sync her fork with upstream while preserving her local work and avoiding conflict hell?" }
+
   ]);
 
   const [answers, setAnswers] = useState({});
@@ -60,7 +60,7 @@ export default function ProctoredTestPage() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
-          audio: false,
+          audio: true,
         });
 
         streamRef.current = stream;
@@ -199,14 +199,34 @@ export default function ProctoredTestPage() {
     };
   }, []);
 
-  const handleStartTest = () => {
+  const handleStartTest = async() => {
     if (cameraAccess === true) {
+       if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
       setTestStarted(true);
       addToast("Test started. Answer each question and submit to continue.", "success");
       startRecording(); // 🎥 Start recording when test starts
     }
   };
+  useEffect(() => {
+  if (isLocked && document.fullscreenElement) {
+    document.exitFullscreen();
+  }
+}, [isLocked]);
+useEffect(() => {
+  const handleFullScreenChange = () => {
+    if (!document.fullscreenElement && testStarted && !isLocked) {
+      // exited fullscreen → count warning
+      triggerWarning();
+    }
+  };
 
+  document.addEventListener("fullscreenchange", handleFullScreenChange);
+  return () => {
+    document.removeEventListener("fullscreenchange", handleFullScreenChange);
+  };
+}, [testStarted, isLocked]);
   const handleSubmitQuestion = async () => {
     const qId = questions[currentQuestionIndex].id;
     const answer = answers[qId];
@@ -270,17 +290,27 @@ export default function ProctoredTestPage() {
     const mediaRecorder = new MediaRecorder(streamRef.current, {
       mimeType: "video/webm; codecs=vp9",
     });
+    
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) recordedChunksRef.current.push(e.data);
     };
 
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-      const file = new File([blob], "proctored_test_recording.webm", { type: "video/webm" });
-      await uploadToServer(file);
-    };
+mediaRecorder.ondataavailable = (event) => {
+  if (event.data.size > 0) {
+    recordedChunksRef.current.push(event.data);
+  }
+};
+
+mediaRecorder.onstop = async () => {
+  const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+  const randomId = Math.random().toString(36).substring(2, 10);
+  const file = new File([blob], `proctored_test_${randomId}.webm`, { type: "video/webm" });
+  await uploadToServer(file);
+};
+
+
 
     mediaRecorder.start();
     console.log("🎥 Recording started...");
