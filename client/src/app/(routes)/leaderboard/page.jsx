@@ -11,19 +11,18 @@ export default function LeaderboardPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await fetch(`/api/quiz/results/`)
+        const res = await fetch(`/api/quiz/results`)
         if (!res.ok) throw new Error("Failed to fetch results")
         const result = await res.json()
 
         // Sort by avg_score descending
         const sorted = result
-          .filter((item) => item.avg_score !== null)
-          .sort((a, b) => b.avg_score - a.avg_score)
-          .map((item, index) => ({
-            rank: index + 1,
-            name: item.user,
-            points: item.avg_score.toFixed(2),
-          }))
+        .map((item, index) => ({
+          rank: index + 1,
+          name: item.name,
+          points: item.points,
+        }));
+      
 
         setData(sorted)
       } catch (err) {
