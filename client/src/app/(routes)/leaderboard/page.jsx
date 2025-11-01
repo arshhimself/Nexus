@@ -11,7 +11,7 @@ export default function LeaderboardPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await fetch(`${process.env.DJANGO_URL}/api/quiz/results/`)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/results/`)
         if (!res.ok) throw new Error("Failed to fetch results")
         const result = await res.json()
 
