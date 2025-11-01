@@ -122,7 +122,7 @@ function FullPageLayout() {
             <Hero />
             <Events></Events>
 
-            <Testimonial />
+            {/* <Testimonial /> */}
             <Footer />
           </div>
         </main>
