@@ -290,10 +290,10 @@ export default function ProctoredTestPage() {
 
   const uploadToServer = async (file) => {
     const formData = new FormData();
-    formData.append("video", file);
+    formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/upload-video/", {
+      const res = await fetch("http://127.0.0.1:8000/upload/s3/", {
         method: "POST",
         body: formData,
       });
