@@ -254,7 +254,7 @@ useEffect(() => {
       addToast("All questions submitted successfully!", "success");
 
       try {
-        const analyzeRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/analyze`, {
+        const analyzeRes = await fetch(`/analyze`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formattedOutput),
@@ -264,7 +264,7 @@ useEffect(() => {
         setdata(analyzedData);
 
         const token = localStorage.getItem("token");
-        const submitRes = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
+        const submitRes = await fetch(`/api/quiz/submit/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -328,7 +328,7 @@ mediaRecorder.onstop = async () => {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/upload/s3/`, {
+      const res = await fetch(`/upload`, {
         method: "POST",
         body: formData,
       });

@@ -65,7 +65,7 @@ const handleClick = async () => {
   setloading(true); // 👈 Show loader immediately
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/authentication/user`, {
+    const response = await fetch(`/api/authentication/user`, {
       method: "GET",
       headers: { Authorization: `${token}` },
     });
@@ -77,7 +77,7 @@ const handleClick = async () => {
     console.log(data)
     if (!data.test_given) {
       const updateResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_DJANGO_URL}/api/authentication/update-test-status/`,
+        `/api/authentication/update-test-status/`,
         {
           method: "GET", // Ideally PATCH
           headers: { Authorization: `${token}` },
