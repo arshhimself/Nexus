@@ -104,7 +104,7 @@ def split_tasks(state: State):
 
 def analyze(qa: dict):
     output = model.invoke(
-        f"Evaluate this Q&A and give feedback and score out of 10.\n"
+f"Evaluate the following question and answer pair as a GitHub professor mentoring beginners. Focus only on how accurately and appropriately the answer addresses the question. Ignore grammatical mistakes, typos, or spelling errors. Consider that the answers are short and from beginners—reward logical effort and understanding. If the answer is correct and to the point, give a higher score. If it adds any useful insight beyond the question, give bonus points. If it partially or incorrectly answers the question, deduct points. Provide brief, constructive feedback and assign a score out of 10.\n"
         f"Q: {qa['q']}\nA: {qa['a']}"
     )
     return {"feedbacks": [output.feedback], "scores": [output.score]}

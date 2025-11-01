@@ -106,7 +106,7 @@ export default function ProfilePage() {
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] bg-black" />
 
       {/* Profile Content */}
-      <div className="relative z-10 w-full max-w-4xl space-y-8">
+      <div className="relative z-10 w-full max-w-5xl space-y-8">
         <div className="text-center">
           <h1 className="text-5xl font-bold text-white">{userData.name}</h1>
           <p className="mt-2 text-sm text-gray-400">Developer Profile</p>

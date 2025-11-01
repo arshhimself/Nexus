@@ -74,3 +74,52 @@ class QuizResultView(APIView):
 
         serializer = QuizResultSerializer(quiz_result)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# class AllQuizResultsView(APIView):  
+
+#     @csrf_exempt
+#     def get(self, request):
+#         try:
+#             all_results = QuizResult.objects.all().select_related('user')
+#             serializer = QuizResultSerializer(all_results, many=True)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response(
+#                 {"error": str(e)}, 
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
+
+class AllQuizResultsView(APIView):
+
+
+    @csrf_exempt
+    def get(self, request):
+        try:
+            all_results = QuizResult.objects.all().select_related('user')
+            results = []
+
+            for result in all_results:
+                # Extract avg_score from JSONField safely
+                avg_score = None
+                if result.data and isinstance(result.data, dict):
+                    avg_score = result.data.get('avg_score')
+
+                # Get user details directly (since it's a ForeignKey)
+                username = result.user.name if hasattr(result.user, 'name') else result.user.email
+                user_id = result.user.id  # if you also need the id
+
+                results.append({
+                    "user_id": user_id,
+                    "user": username,
+                    "avg_score": avg_score
+                })
+
+            return Response(results, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
