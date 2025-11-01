@@ -293,7 +293,7 @@ export default function ProctoredTestPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/upload/s3/", {
+      const res = await fetch("https://nexus-model.onrender.com/upload/s3/", {
         method: "POST",
         body: formData,
       });
