@@ -26,7 +26,7 @@ export default function ProfilePage() {
       }
       try {
         setLoading(true)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/authentication/user`, {
+        const response = await fetch(`${process.env.DJANGO_URL}/api/authentication/user`, {
           method: "GET",
           headers: {
             Authorization: `${token}`,
