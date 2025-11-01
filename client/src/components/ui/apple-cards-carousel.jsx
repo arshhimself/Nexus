@@ -177,7 +177,7 @@ export const Card = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 h-full w-full bg-black/80 backdrop-blur-lg" />
+              className="fixed inset-0 h-full w-full bg-black/80 " />
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

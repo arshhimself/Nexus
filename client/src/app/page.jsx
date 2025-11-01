@@ -88,7 +88,7 @@ function Footer() {
             </svg>
           </a>
           <a
-            href="#"
+            href="https://github.com/arshhimself"
             aria-label="GitHub"
             className="text-neutral-400 hover:text-neutral-100 transition"
           >
