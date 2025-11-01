@@ -234,7 +234,7 @@ export default function ProctoredTestPage() {
       addToast("All questions submitted successfully!", "success");
 
       try {
-        const analyzeRes = await fetch(`/analyze`, {
+        const analyzeRes = await fetch(`api/analyze`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formattedOutput),
@@ -298,7 +298,7 @@ export default function ProctoredTestPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`/upload`, {
+      const res = await fetch(`api/upload`, {
         method: "POST",
         body: formData,
       });
