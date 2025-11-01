@@ -11,7 +11,7 @@ export default function QuizResultsPage() {
  if (typeof window === "undefined") return; // prevent SSR crash
   const token = localStorage.getItem("token");
     try {
-      const res = await fetch("https://nexus-ccz0.onrender.com/api/quiz/submit/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
         method: "GET",
         headers: {
           Authorization: `${token}`,

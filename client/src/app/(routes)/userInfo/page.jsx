@@ -18,7 +18,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token")
-      console.log("Using token:", token)
+
       
       if (!token) {
         router.push("/login")
@@ -26,7 +26,7 @@ export default function ProfilePage() {
       }
       try {
         setLoading(true)
-        const response = await fetch(`https://nexus-ccz0.onrender.com/api/authentication/user`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/authentication/user`, {
           method: "GET",
           headers: {
             Authorization: `${token}`,

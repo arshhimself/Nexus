@@ -167,6 +167,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     'https://nexus-ccz0.onrender.com',  # Render backend domain
     'https://nexus-rcoe.vercel.app',
+    'http://localhost:8000'
 ]
 
 
@@ -176,6 +177,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost',
     '13.200.225.213',
+    'http://localhost:8000'
 ]
 
 # Middleware adjustments for static files
