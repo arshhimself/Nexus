@@ -1,17 +1,19 @@
-export async function POST(request) {
+export async function GET(request) {
     try {
-      const body = await request.json();
-  
       // Backend URL from env
       const backendUrl = process.env.NEXT_PUBLIC_DJANGO_URL;
   
-      const res = await fetch(`${backendUrl}/api/authentication/login`, {
-        method: "POST",
+      const res = await fetch(`${backendUrl}/api/quiz/results/`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        cache: "no-store",
       });
+  
+      if (!res.ok) {
+        throw new Error("Failed to fetch quiz results");
+      }
   
       const data = await res.json();
   
@@ -20,7 +22,7 @@ export async function POST(request) {
         headers: { "Content-Type": "application/json" },
       });
     } catch (error) {
-      console.error("Login API Error:", error);
+      console.error("Leaderboard API Error:", error);
   
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

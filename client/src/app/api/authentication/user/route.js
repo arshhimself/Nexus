@@ -1,17 +1,22 @@
-export async function POST(request) {
+export async function GET(request) {
     try {
-      const body = await request.json();
-  
-      // Backend URL from env
       const backendUrl = process.env.NEXT_PUBLIC_DJANGO_URL;
   
-      const res = await fetch(`${backendUrl}/api/authentication/login`, {
-        method: "POST",
+      // Read token from frontend
+      const token = request.headers.get("authorization");
+  
+      const res = await fetch(`${backendUrl}/api/authentication/user`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token || "",
         },
-        body: JSON.stringify(body),
+        cache: "no-store",
       });
+  
+      if (!res.ok) {
+        throw new Error(`Failed to fetch user data: ${res.status}`);
+      }
   
       const data = await res.json();
   
@@ -20,8 +25,7 @@ export async function POST(request) {
         headers: { "Content-Type": "application/json" },
       });
     } catch (error) {
-      console.error("Login API Error:", error);
-  
+      console.error("User API Error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
