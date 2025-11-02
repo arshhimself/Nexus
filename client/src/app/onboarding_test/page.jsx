@@ -27,10 +27,11 @@ export default function ProctoredTestPage() {
     { id: 1, question: "Explain the difference between Git and GitHub." },
     { id: 2, question: "How can you revert a commit that has already been pushed to a remote repository?"   },
     { id: 3, question: "What is a Git rebase and how is it different from merge?" },
-    { id: 4, question: "Fareed’s last minute commit modifies key dependency versions, causing build failures and breaking the project. Rehbar identifies the issue, rolls back the faulty commit, and restores the last stable version. Which Git commands did he likely use to revert the broken commit and fix the build" },
-    { id: 5, question: "Ali accidentally pushed his '.env' file with sensitive credentials to GitHub. What git steps should he follow to permanently remove it from the repo’s history (without making the repo private)?" },
+    { id: 4, question: "During the last hour of the hackathon, Fareed’s commit silently breaks the build. Rehbar notices, runs a couple of commands, and the project’s back to normal. What Git steps did Rehbar likely use to fix it?" },
+    { id: 5, question: "Alisha accidentally pushed her '.env' file containing sensitive credentials to GitHub. She quickly deleted it in the next commit and even considered making the repo private, but the secret is still visible in the previous commit history. Since making the repo private won’t actually fix the issue, what exact steps and git commands should Alisha follow to permanently remove the sensitive data from Git history?" },
     { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
-    { id: 7, question: "Tanushree pushes her half-written code right before Fareed merges his PR.Merge conflicts explode across 12 files ,Rehbar wants a clean rebase to merge without losing work.Which exact rebase workflow should Rehbar use to merge both PRs while keeping linear commit history?" },
+    { id: 7, question: "Tanushree pushes her half-written code right before Rehbar merges his PR.Merge conflicts explode across 12 files ,Fareed wants a clean rebase to merge without losing work.Which exact rebase workflow should Fareed use to merge both PRs while keeping linear commit history?" },
+    { id: 8, question: "Afraa forked the repo six months ago.Fareed refactored main completely.Now she wants to sync her fork and create a PR.Rehbar’s scripts detect 894 conflicts.What’s the correct process for Afraa to sync her fork with upstream while preserving her local work and avoiding conflict hell?" }
   ]);
 
   const [answers, setAnswers] = useState({});
@@ -59,7 +60,7 @@ export default function ProctoredTestPage() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
-          audio: true,
+          audio: false,
         });
 
         streamRef.current = stream;
@@ -82,7 +83,7 @@ export default function ProctoredTestPage() {
 
   useEffect(() => {
     if (isLocked && testStarted) {
-      const timer = setTimeout(() => setShowLoader(false), 10000);
+      const timer = setTimeout(() => setShowLoader(false), 5000);
       return () => clearTimeout(timer);
     }
   }, [isLocked, testStarted]);
@@ -110,7 +111,6 @@ export default function ProctoredTestPage() {
           clearInterval(timerRef.current);
           setIsLocked(true);
           addToast("⏰ Time's up! Test submitted.", "error");
-          handleSubmitQuestion();
           stopRecording(); // 🎥 Stop recording on time-up
           return 0;
         }
@@ -199,34 +199,14 @@ export default function ProctoredTestPage() {
     };
   }, []);
 
-  const handleStartTest = async() => {
+  const handleStartTest = () => {
     if (cameraAccess === true) {
-       if (document.documentElement.requestFullscreen) {
-      await document.documentElement.requestFullscreen();
-    }
       setTestStarted(true);
       addToast("Test started. Answer each question and submit to continue.", "success");
       startRecording(); // 🎥 Start recording when test starts
     }
   };
-  useEffect(() => {
-  if (isLocked && document.fullscreenElement) {
-    document.exitFullscreen();
-  }
-}, [isLocked]);
-useEffect(() => {
-  const handleFullScreenChange = () => {
-    if (!document.fullscreenElement && testStarted && !isLocked) {
-      // exited fullscreen → count warning
-      triggerWarning();
-    }
-  };
 
-  document.addEventListener("fullscreenchange", handleFullScreenChange);
-  return () => {
-    document.removeEventListener("fullscreenchange", handleFullScreenChange);
-  };
-}, [testStarted, isLocked]);
   const handleSubmitQuestion = async () => {
     const qId = questions[currentQuestionIndex].id;
     const answer = answers[qId];
@@ -264,7 +244,7 @@ useEffect(() => {
         setdata(analyzedData);
 
         const token = localStorage.getItem("token");
-        const submitRes = await fetch(`/api/quiz/submit/`, {
+        const submitRes = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -290,36 +270,26 @@ useEffect(() => {
     const mediaRecorder = new MediaRecorder(streamRef.current, {
       mimeType: "video/webm; codecs=vp9",
     });
-    
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) recordedChunksRef.current.push(e.data);
     };
 
-mediaRecorder.ondataavailable = (event) => {
-  if (event.data.size > 0) {
-    recordedChunksRef.current.push(event.data);
-  }
-};
-
-mediaRecorder.onstop = async () => {
-  const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-  const randomId = Math.random().toString(36).substring(2, 10);
-  const file = new File([blob], `proctored_test_${randomId}.webm`, { type: "video/webm" });
-  await uploadToServer(file);
-};
-
-
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+      const file = new File([blob], "proctored_test_recording.webm", { type: "video/webm" });
+      await uploadToServer(file);
+    };
 
     mediaRecorder.start();
-    console.log(" Recording started...");
+    console.log("🎥 Recording started...");
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
-      console.log("Recording stopped.");
+      console.log("🎥 Recording stopped.");
     }
   };
 
@@ -328,27 +298,10 @@ mediaRecorder.onstop = async () => {
     formData.append("file", file);
 
     try {
-
-
       const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/upload/s3/`, {
-
-  
-
         method: "POST",
-
         body: formData,
       });
-
-
-      
-      
-      if (!res.ok) {
-        throw new Error(`Upload failed: ${res.statusText}`);
-      }
-      
-
-
-
       const data = await res.json();
       console.log("🎥 Upload success:", data);
     } catch (err) {
@@ -538,12 +491,8 @@ mediaRecorder.onstop = async () => {
 {isLocked && testStarted && (
   <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-in fade-in duration-300">
     {showLoader ? (
- <div className="flex flex-col items-center justify-center space-y-4">
-    <LoaderOne />
-    {/* <p className="text-white/70 text-sm animate-pulse">
-      Please wait for 20 seconds...
-    </p> */}
-  </div>    ) : (
+<LoaderOne />
+    ) : (
       <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 text-center max-w-md">
         <h2 className="text-2xl font-bold text-white mb-3">Test Completed</h2>
         <p className="text-white/60">

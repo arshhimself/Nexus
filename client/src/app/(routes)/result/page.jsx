@@ -3,13 +3,14 @@
 import { cn } from "@/lib/utils"
 import { LoaderFive } from "@/components/ui/loader";
 import { useEffect, useState } from "react"
+
 export default function QuizResultsPage() {
   const [quizData, setQuizData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const fetchQuizResults = async () => {
- if (typeof window === "undefined") return; // prevent SSR crash
-  const token = localStorage.getItem("token");
+    if (typeof window === "undefined") return; // prevent SSR crash
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`/api/quiz/submit/`, {
         method: "GET",
@@ -24,10 +25,11 @@ export default function QuizResultsPage() {
 
       const data = await res.json()
       console.log("Fetched quiz results:", data)
-setQuizData(data[0].data)
+      setQuizData(data[0]?.data || null) // safe access
 
     } catch (error) {
       console.error("Error fetching quiz results:", error)
+      setQuizData(null)
     } finally {
       setLoading(false)
     }
@@ -55,19 +57,19 @@ setQuizData(data[0].data)
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
-      <LoaderFive text="Generating Result..." />
+        <LoaderFive text="Generating Result..." />
       </div>
     )
   }
 
-
-  // if (!quizData) {
-  //   return (
-  //     <div className="flex items-center justify-center min-h-screen bg-black text-white">
-  //       <p>No quiz data found.</p>
-  //     </div>
-  //   )
-  // }
+  // 🛑 No data fallback
+  if (!quizData || !quizData.questions_answers) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <p>No quiz data found.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-start bg-black p-5 pt-[20vh]">
@@ -114,7 +116,7 @@ setQuizData(data[0].data)
               key={index}
               className={cn(
                 "rounded-lg border border-neutral-800 bg-neutral-950/50 backdrop-blur-sm p-6 transition-colors hover:bg-neutral-900/50",
-                getScoreBgColor(quizData.scores[index]),
+                getScoreBgColor(quizData.scores?.[index] || 0),
               )}
             >
               {/* Question Number and Score */}
@@ -124,11 +126,11 @@ setQuizData(data[0].data)
                   <span
                     className={cn(
                       "text-xs font-semibold px-2 py-1 rounded",
-                      getScoreColor(quizData.scores[index]),
+                      getScoreColor(quizData.scores?.[index] || 0),
                       "bg-neutral-900/50",
                     )}
                   >
-                    {quizData.scores[index]}/10
+                    {quizData.scores?.[index] || 0}/10
                   </span>
                 </div>
               </div>
@@ -145,7 +147,7 @@ setQuizData(data[0].data)
               {/* Feedback */}
               <div className="pl-4 border-l border-neutral-700">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Feedback</p>
-                <p className="text-sm text-neutral-400 leading-relaxed">{quizData.feedbacks[index]}</p>
+                <p className="text-sm text-neutral-400 leading-relaxed">{quizData.feedbacks?.[index] || "No feedback available"}</p>
               </div>
             </div>
           ))}

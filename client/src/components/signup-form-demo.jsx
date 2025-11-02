@@ -20,7 +20,7 @@ const { login } = useAuth();
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/authentication/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/authentication/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
