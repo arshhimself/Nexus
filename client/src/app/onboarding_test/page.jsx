@@ -143,22 +143,58 @@ export default function ProctoredTestPage() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isLocked, warnings]);
 
-  const triggerWarning = () => {
-    setWarnings((prev) => {
-      const newWarnings = prev + 1;
-      addToast(
-        `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
-        "warning"
-      );
+const triggerWarning = async () => {
+  // Increment warnings
+  setWarnings((prev) => prev + 1);
 
-      if (newWarnings >= 3) {
-        setIsLocked(true);
-        stopRecording(); // 🎥 Stop recording on lock
-        addToast("Test locked due to multiple warnings", "error");
-      }
-      return newWarnings;
-    });
-  };
+  const newWarnings = warnings + 1;
+  addToast(
+    `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
+    "warning"
+  );
+
+  if (newWarnings >= 3) {
+    setIsLocked(true);
+    stopRecording(); // 🎥 Stop recording
+    addToast("Test locked due to multiple warnings", "error");
+
+    const formattedOutput = {
+      questions_answers: questions.map((q) => ({
+        q: q.question,
+        a: answers[q.id] || "",
+      })),
+    };
+
+    try {
+      // 🔹 Step 1: Analyze answers using FastAPI
+      const analyzeRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formattedOutput),
+      });
+      const analyzedData = await analyzeRes.json();
+      setdata(analyzedData);
+
+      // 🔹 Step 2: Submit analyzed results to Django backend
+      const token = localStorage.getItem("token");
+      const submitRes = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+        body: JSON.stringify(analyzedData),
+      });
+
+      console.log("Auto-submit after warnings:", await submitRes.json());
+      addToast("✅ Test auto-submitted successfully", "success");
+    } catch (err) {
+      console.error("Auto-submit failed:", err);
+      addToast("Error auto-submitting test", "error");
+    }
+  }
+};
+
 
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
