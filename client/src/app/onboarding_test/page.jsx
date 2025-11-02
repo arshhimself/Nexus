@@ -82,7 +82,7 @@ export default function ProctoredTestPage() {
 
   useEffect(() => {
     if (isLocked && testStarted) {
-      const timer = setTimeout(() => setShowLoader(false), 8000);
+      const timer = setTimeout(() => setShowLoader(false), 12000);
       return () => clearTimeout(timer);
     }
   }, [isLocked, testStarted]);
