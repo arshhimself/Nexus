@@ -116,25 +116,85 @@ export default function ProctoredTestPage() {
     }
   }, [cameraAccess]);
 
-  useEffect(() => {
-    if (!testStarted || isLocked) return;
+useEffect(() => {
+  if (!testStarted || isLocked) return;
 
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleSubmitQuestion();
-          clearInterval(timerRef.current);
-          setIsLocked(true);
-          addToast("⏰ Time's up! Test submitted.", "error");
-          stopRecording(); // 🎥 Stop recording on time-up
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  timerRef.current = setInterval(() => {
+    setTimeLeft((prev) => {
+      if (prev <= 1) {
+        clearInterval(timerRef.current);
+        setIsLocked(true);
+        addToast("⏰ Time's up! Test submitted.", "error");
+        stopRecording();
+        handleAutoSubmit(); // 🆕 NEW: Call auto-submit function
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
 
-    return () => clearInterval(timerRef.current);
-  }, [testStarted, isLocked]);
+  return () => clearInterval(timerRef.current);
+}, [testStarted, isLocked]);
+
+// 🆕 ADD THIS NEW FUNCTION
+// 🆕 IMPROVED AUTO-SUBMIT FUNCTION
+const handleAutoSubmit = async () => {
+  // Use functional update to get the latest answers state
+  setAnswers(currentAnswers => {
+    // Create formatted output with latest answers
+    const formattedOutput = {
+      questions_answers: questions.map((q) => ({
+        q: q.question,
+        a: currentAnswers[q.id] || "i dont know",
+      })),
+    };
+
+    console.log("Auto-submitting due to timeout:", formattedOutput);
+
+    // Submit the data
+    submitQuizData(formattedOutput);
+    
+    return currentAnswers; // Return unchanged state
+  });
+};
+
+// 🆕 EXTRACT SUBMISSION LOGIC TO REUSABLE FUNCTION
+const submitQuizData = async (formattedOutput) => {
+  try {
+    // Step 1: Analyze answers
+    const analyzeRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formattedOutput),
+    });
+    
+    if (!analyzeRes.ok) throw new Error("Analysis failed");
+    
+    const analyzedData = await analyzeRes.json();
+    setdata(analyzedData);
+
+    // Step 2: Submit to Django
+    const token = localStorage.getItem("token");
+    const submitRes = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
+      },
+      body: JSON.stringify(analyzedData),
+    });
+
+    if (!submitRes.ok) throw new Error("Submission failed");
+    
+    const submitResponse = await submitRes.json();
+    console.log("Timeout auto-submit successful:", submitResponse);
+    addToast("✅ Test auto-submitted due to timeout", "success");
+    
+  } catch (err) {
+    console.error("Timeout auto-submit failed:", err);
+    addToast("Error auto-submitting test", "error");
+  }
+};
 
   const addToast = (message, type = "warning") => {
     const id = Date.now();
@@ -158,55 +218,32 @@ export default function ProctoredTestPage() {
   }, [isLocked, warnings]);
 
 const triggerWarning = async () => {
-  // Increment warnings
-  setWarnings((prev) => prev + 1);
+  setWarnings((prev) => {
+    const newWarnings = prev + 1;
+    
+    addToast(
+      `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
+      "warning"
+    );
 
-  const newWarnings = warnings + 1;
-  addToast(
-    `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
-    "warning"
-  );
+    if (newWarnings >= 3) {
+      setIsLocked(true);
+      stopRecording();
+      addToast("Test locked due to multiple warnings", "error");
 
-  if (newWarnings >= 3) {
-    setIsLocked(true);
-    stopRecording(); // 🎥 Stop recording
-    addToast("Test locked due to multiple warnings", "error");
+      // Use answersRef or functional update to get latest answers
+      const formattedOutput = {
+        questions_answers: questions.map((q) => ({
+          q: q.question,
+          a: answersRef.current[q.id] || "I dont know",
+        })),
+      };
 
-    const formattedOutput = {
-      questions_answers: questions.map((q) => ({
-        q: q.question,
-        a: answers[q.id] || " i dont know the answer",
-      })),
-    };
-
-    try {
-      // 🔹 Step 1: Analyze answers using FastAPI
-      const analyzeRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formattedOutput),
-      });
-      const analyzedData = await analyzeRes.json();
-      setdata(analyzedData);
-
-      // 🔹 Step 2: Submit analyzed results to Django backend
-      const token = localStorage.getItem("token");
-      const submitRes = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
-        body: JSON.stringify(analyzedData),
-      });
-
-      console.log("Auto-submit after warnings:", await submitRes.json());
-      addToast("✅ Test auto-submitted successfully", "success");
-    } catch (err) {
-      console.error("Auto-submit failed:", err);
-      addToast("Error auto-submitting test", "error");
+      submitQuizData(formattedOutput);
     }
-  }
+    
+    return newWarnings;
+  });
 };
 
 
@@ -273,7 +310,7 @@ const triggerWarning = async () => {
       const formattedOutput = {
         questions_answers: questions.map((q) => ({
           q: q.question,
-          a: answers[q.id] || "",
+          a: answers[q.id] || " i dont know",
         })),
       };
 
