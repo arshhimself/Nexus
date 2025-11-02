@@ -31,7 +31,6 @@ export default function ProctoredTestPage() {
     { id: 5, question: "Ali accidentally pushed his '.env' file with sensitive credentials to GitHub. What git steps should he follow to permanently remove it from the repo’s history (without making the repo private)?" },
     { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
     { id: 7, question: "Tanushree pushes her half-written code right before Fareed merges his PR.Merge conflicts explode across 12 files ,Rehbar wants a clean rebase to merge without losing work.Which exact rebase workflow should Rehbar use to merge both PRs while keeping linear commit history?" },
-
   ]);
 
   const [answers, setAnswers] = useState({});
@@ -83,7 +82,7 @@ export default function ProctoredTestPage() {
 
   useEffect(() => {
     if (isLocked && testStarted) {
-      const timer = setTimeout(() => setShowLoader(false), 8000);
+      const timer = setTimeout(() => setShowLoader(false), 10000);
       return () => clearTimeout(timer);
     }
   }, [isLocked, testStarted]);
@@ -111,6 +110,7 @@ export default function ProctoredTestPage() {
           clearInterval(timerRef.current);
           setIsLocked(true);
           addToast("⏰ Time's up! Test submitted.", "error");
+          handleSubmitQuestion();
           stopRecording(); // 🎥 Stop recording on time-up
           return 0;
         }
@@ -529,8 +529,12 @@ mediaRecorder.onstop = async () => {
 {isLocked && testStarted && (
   <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40 animate-in fade-in duration-300">
     {showLoader ? (
-<LoaderOne />
-    ) : (
+ <div className="flex flex-col items-center justify-center space-y-4">
+    <LoaderOne />
+    {/* <p className="text-white/70 text-sm animate-pulse">
+      Please wait for 20 seconds...
+    </p> */}
+  </div>    ) : (
       <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 text-center max-w-md">
         <h2 className="text-2xl font-bold text-white mb-3">Test Completed</h2>
         <p className="text-white/60">
