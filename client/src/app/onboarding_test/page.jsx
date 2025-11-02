@@ -329,7 +329,7 @@ mediaRecorder.onstop = async () => {
   
     try {
       // Next.js API route को call करें
-      const res = await fetch('/api/upload', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/upload/s3/`, {
         method: 'POST',
         body: formData,
       });
