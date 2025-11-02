@@ -92,6 +92,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "13.200.225.213",            # Your public IP
     "3.110.209.65",
+    "nexus-fastapi.crodlin.in"
     "http://localhost:8000",
 ]
 
