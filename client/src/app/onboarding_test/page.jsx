@@ -82,7 +82,7 @@ export default function ProctoredTestPage() {
 
   useEffect(() => {
     if (isLocked && testStarted) {
-      const timer = setTimeout(() => setShowLoader(false), 20000);
+      const timer = setTimeout(() => setShowLoader(false), 10000);
       return () => clearTimeout(timer);
     }
   }, [isLocked, testStarted]);
@@ -329,7 +329,7 @@ mediaRecorder.onstop = async () => {
   
     try {
       // Next.js API route को call करें
-      const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/upload/s3/`, {
+      const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -531,9 +531,9 @@ mediaRecorder.onstop = async () => {
     {showLoader ? (
  <div className="flex flex-col items-center justify-center space-y-4">
     <LoaderOne />
-    <p className="text-white/70 text-sm animate-pulse">
+    {/* <p className="text-white/70 text-sm animate-pulse">
       Please wait for 20 seconds...
-    </p>
+    </p> */}
   </div>    ) : (
       <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl p-8 text-center max-w-md">
         <h2 className="text-2xl font-bold text-white mb-3">Test Completed</h2>
