@@ -254,7 +254,7 @@ useEffect(() => {
       addToast("All questions submitted successfully!", "success");
 
       try {
-        const analyzeRes = await fetch(`api/analyze`, {
+        const analyzeRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/analyze`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formattedOutput),
@@ -330,7 +330,7 @@ mediaRecorder.onstop = async () => {
     try {
 
 
-      const res = await fetch('/api/proxy/upload', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/upload/s3/`, {
 
   
 
