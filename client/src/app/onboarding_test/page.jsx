@@ -313,13 +313,13 @@ mediaRecorder.onstop = async () => {
 
 
     mediaRecorder.start();
-    console.log("🎥 Recording started...");
+    console.log(" Recording started...");
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
-      console.log("🎥 Recording stopped.");
+      console.log("Recording stopped.");
     }
   };
 
@@ -328,8 +328,10 @@ mediaRecorder.onstop = async () => {
     formData.append("file", file);
 
     try {
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/upload/s3/`, {
         method: "POST",
+
         body: formData,
       });
       const data = await res.json();
