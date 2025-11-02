@@ -108,6 +108,7 @@ export default function ProctoredTestPage() {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
+          handleSubmitQuestion();
           clearInterval(timerRef.current);
           setIsLocked(true);
           addToast("⏰ Time's up! Test submitted.", "error");
