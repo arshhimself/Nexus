@@ -17,6 +17,8 @@ ALLOWED_HOSTS = [
     'localhost',
     '13.200.225.213',
     'http://localhost:8000',
+    "nexus-django.crodlin.in",
+    '13.232.189.207',
     '3.110.209.65', 'localhost', '127.0.0.1'
 ]
 
