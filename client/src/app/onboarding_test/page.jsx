@@ -313,13 +313,13 @@ mediaRecorder.onstop = async () => {
 
 
     mediaRecorder.start();
-    console.log("🎥 Recording started...");
+    console.log(" Recording started...");
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
-      console.log("🎥 Recording stopped.");
+      console.log("Recording stopped.");
     }
   };
 
@@ -328,8 +328,8 @@ mediaRecorder.onstop = async () => {
     formData.append("file", file);
   
     try {
-      // Next.js API route को call करें
-      const res = await fetch('/api/upload', {
+
+      const res = await fetch('/api/proxy/upload', {
         method: 'POST',
         body: formData,
       });
