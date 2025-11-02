@@ -35,7 +35,10 @@ export default function ProctoredTestPage() {
 
 
   const [answers, setAnswers] = useState({});
-
+const answersRef = useRef({});
+useEffect(() => {
+  answersRef.current = answers;
+}, [answers]);
   useEffect(() => {
     // Hide any navbar coming from parent layout on this page
     const navSelectors = 'nav, [role="navigation"], .navbar, .nav';
@@ -136,27 +139,22 @@ useEffect(() => {
   return () => clearInterval(timerRef.current);
 }, [testStarted, isLocked]);
 
-// 🆕 ADD THIS NEW FUNCTION
-// 🆕 IMPROVED AUTO-SUBMIT FUNCTION
 const handleAutoSubmit = async () => {
-  // Use functional update to get the latest answers state
-  setAnswers(currentAnswers => {
-    // Create formatted output with latest answers
-    const formattedOutput = {
-      questions_answers: questions.map((q) => ({
-        q: q.question,
-        a: currentAnswers[q.id] || "i dont know",
-      })),
-    };
+  // Use answersRef to get the latest answers (this avoids closure issues)
+  const currentAnswers = { ...answersRef.current };
+  
+  const formattedOutput = {
+    questions_answers: questions.map((q) => ({
+      q: q.question,
+      a: currentAnswers[q.id] || "i dont know",
+    })),
+  };
 
-    console.log("Auto-submitting due to timeout:", formattedOutput);
-
-    // Submit the data
-    submitQuizData(formattedOutput);
-    
-    return currentAnswers; // Return unchanged state
-  });
+  console.log("Auto-submitting due to timeout:", formattedOutput);
+  await submitQuizData(formattedOutput);
 };
+
+
 
 // 🆕 EXTRACT SUBMISSION LOGIC TO REUSABLE FUNCTION
 const submitQuizData = async (formattedOutput) => {
@@ -231,7 +229,7 @@ const triggerWarning = async () => {
       stopRecording();
       addToast("Test locked due to multiple warnings", "error");
 
-      // Use answersRef or functional update to get latest answers
+      // Use answersRef to get latest answers
       const formattedOutput = {
         questions_answers: questions.map((q) => ({
           q: q.question,
