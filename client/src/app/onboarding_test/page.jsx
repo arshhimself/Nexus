@@ -88,6 +88,20 @@ export default function ProctoredTestPage() {
     }
   }, [isLocked, testStarted]);
 
+    useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "PrintScreen") {
+        addToast("Screenshots are disabled during this test!", "error")
+        document.body.style.filter = "blur(8px)"
+        setTimeout(() => (document.body.style.filter = "none"), 1000)
+        e.preventDefault()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [])
+
   useEffect(() => {
     if (cameraAccess === true && videoRef.current && streamRef.current) {
       try {
