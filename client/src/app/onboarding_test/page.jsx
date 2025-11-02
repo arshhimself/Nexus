@@ -80,7 +80,7 @@ export default function ProctoredTestPage() {
       }
     };
   }, []);
-  
+
   useEffect(() => {
     if (isLocked && testStarted) {
       const timer = setTimeout(() => setShowLoader(false), 10000);
@@ -161,7 +161,7 @@ const triggerWarning = async () => {
     const formattedOutput = {
       questions_answers: questions.map((q) => ({
         q: q.question,
-        a: answers[q.id] || "",
+        a: answers[q.id] || " i dont know the answer",
       })),
     };
 
