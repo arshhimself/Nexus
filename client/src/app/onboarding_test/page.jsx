@@ -326,25 +326,28 @@ mediaRecorder.onstop = async () => {
   const uploadToServer = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
 
       const res = await fetch('/api/proxy/upload', {
-        method: 'POST',
+        method: "POST",
+
         body: formData,
       });
+
+      
       
       if (!res.ok) {
         throw new Error(`Upload failed: ${res.statusText}`);
       }
       
+
+
       const data = await res.json();
       console.log("🎥 Upload success:", data);
-      return data;
     } catch (err) {
       console.error("🎥 Upload error:", err);
       addToast("Error uploading video recording", "error");
-      throw err;
     }
   };
   // 🎥 END RECORDING
