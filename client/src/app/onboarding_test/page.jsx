@@ -31,7 +31,6 @@ export default function ProctoredTestPage() {
     { id: 5, question: "Ali accidentally pushed his '.env' file with sensitive credentials to GitHub. What git steps should he follow to permanently remove it from the repo’s history (without making the repo private)?" },
     { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
     { id: 7, question: "Tanushree pushes her half-written code right before Fareed merges his PR.Merge conflicts explode across 12 files ,Rehbar wants a clean rebase to merge without losing work.Which exact rebase workflow should Rehbar use to merge both PRs while keeping linear commit history?" },
-
   ]);
 
   const [answers, setAnswers] = useState({});
