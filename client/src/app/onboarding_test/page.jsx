@@ -105,6 +105,47 @@ useEffect(() => {
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [])
 
+const enterFullScreen = async (retryCount = 0) => {
+  const el = document.documentElement;
+  
+  try {
+    if (el.requestFullscreen) {
+      await el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+      await el.webkitRequestFullscreen();
+    } else if (el.mozRequestFullScreen) {
+      await el.mozRequestFullScreen();
+    } else if (el.msRequestFullscreen) {
+      await el.msRequestFullscreen();
+    } else {
+      // Fallback: try to maximize window
+      window.moveTo(0, 0);
+      window.resizeTo(screen.availWidth, screen.availHeight);
+    }
+  } catch (err) {
+    console.warn("Fullscreen request failed:", err);
+    
+    // Retry up to 3 times with exponential backoff
+    if (retryCount < 3) {
+      const delay = Math.pow(2, retryCount) * 500; // 500ms, 1000ms, 2000ms
+      setTimeout(() => enterFullScreen(retryCount + 1), delay);
+    } else {
+      addToast("Could not enter fullscreen automatically. Please press F11 or maximize the window.", "warning");
+    }
+  }
+};
+useEffect(() => {
+  const handleBlur = () => {
+    if (testStarted && !isLocked && document.hasFocus()) {
+      // Window might have lost focus due to alt-tab or other window interaction
+      triggerWarning();
+      addToast("Focus loss detected. Please stay in the test window.", "warning");
+    }
+  };
+
+  window.addEventListener("blur", handleBlur);
+  return () => window.removeEventListener("blur", handleBlur);
+}, [testStarted, isLocked]);
   useEffect(() => {
     if (cameraAccess === true && videoRef.current && streamRef.current) {
       try {
@@ -285,13 +326,18 @@ const triggerWarning = async () => {
     };
   }, []);
 
-  const handleStartTest = () => {
-    if (cameraAccess === true) {
-      setTestStarted(true);
-      addToast("Test started. Answer each question and submit to continue.", "success");
-      startRecording(); // 🎥 Start recording when test starts
-    }
-  };
+const handleStartTest = async () => {
+  if (cameraAccess === true) {
+    setTestStarted(true);
+    addToast("Test started. Answer each question and submit to continue.", "success");
+    startRecording();
+    
+    // Add a small delay to ensure DOM is ready, then enter fullscreen
+    setTimeout(() => {
+      enterFullScreen();
+    }, 500);
+  }
+};
 
   const handleSubmitQuestion = async () => {
     const qId = questions[currentQuestionIndex].id;
@@ -378,6 +424,81 @@ const triggerWarning = async () => {
       console.log("🎥 Recording stopped.");
     }
   };
+useEffect(() => {
+  let fullScreenAttempt = null;
+
+  const handleFullScreenChange = () => {
+    if (!document.fullscreenElement && testStarted && !isLocked) {
+      triggerWarning();
+      addToast("Fullscreen exit detected. Returning to fullscreen mode.", "warning");
+      
+      // Clear any previous attempt
+      if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+      
+      fullScreenAttempt = setTimeout(() => {
+        enterFullScreen();
+      }, 1000);
+    }
+  };
+
+  const handleResize = () => {
+    // More reliable check for window state
+    const isFullscreen = !!document.fullscreenElement;
+    const isMaximized = window.outerWidth >= screen.availWidth || window.outerHeight >= screen.availHeight;
+    
+    if (!isFullscreen && !isMaximized && testStarted && !isLocked) {
+      triggerWarning();
+      addToast("Window resize detected. Returning to fullscreen mode.", "warning");
+      
+      // Clear any previous attempt
+      if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+      
+      fullScreenAttempt = setTimeout(() => {
+        enterFullScreen();
+      }, 1000);
+    }
+  };
+
+  // Also check for window move events (dragging the window)
+  const handleMove = () => {
+    const isFullscreen = !!document.fullscreenElement;
+    if (!isFullscreen && testStarted && !isLocked) {
+      triggerWarning();
+      addToast("Please stay in fullscreen mode during the test.", "warning");
+      
+      if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+      
+      fullScreenAttempt = setTimeout(() => {
+        enterFullScreen();
+      }, 1000);
+    }
+  };
+
+  document.addEventListener("fullscreenchange", handleFullScreenChange);
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("move", handleMove);
+  
+  return () => {
+    document.removeEventListener("fullscreenchange", handleFullScreenChange);
+    window.removeEventListener("resize", handleResize);
+    window.removeEventListener("move", handleMove);
+    if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+  };
+}, [testStarted, isLocked]);
+// Periodic fullscreen check
+useEffect(() => {
+  if (!testStarted || isLocked) return;
+
+  const fullscreenCheckInterval = setInterval(() => {
+    if (!document.fullscreenElement) {
+      triggerWarning();
+      addToast("Please return to fullscreen mode.", "warning");
+      enterFullScreen();
+    }
+  }, 5000); // Check every 5 seconds
+
+  return () => clearInterval(fullscreenCheckInterval);
+}, [testStarted, isLocked]);
 
   const uploadToServer = async (file) => {
     const formData = new FormData();
@@ -396,7 +517,33 @@ const triggerWarning = async () => {
     }
   };
   // 🎥 END RECORDING
+useEffect(() => {
+  const handleKeyDown = (e) => {
+    // Prevent F11 (fullscreen toggle)
+    if (e.key === "F11") {
+      e.preventDefault();
+      addToast("Fullscreen toggle is disabled during the test.", "warning");
+      return false;
+    }
+    
+    // Prevent PrintScreen
+    if (e.key === "PrintScreen") {
+      addToast("Screenshots are disabled during this test!", "error");
+      document.body.style.filter = "blur(8px)";
+      setTimeout(() => (document.body.style.filter = "none"), 1000);
+      e.preventDefault();
+    }
 
+    // Prevent Alt+Tab, Win+Tab, etc.
+    if ((e.altKey && e.key === "Tab") || (e.metaKey && e.key === "Tab")) {
+      e.preventDefault();
+      triggerWarning();
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+  return () => document.removeEventListener("keydown", handleKeyDown);
+}, [testStarted, isLocked]);
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
