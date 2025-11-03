@@ -9,7 +9,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-6*4@1vpm9c4l7y7b2^7o^u@#mj@_1dx^!rx#e+zqg=f5+5@d9'
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = [
     'nexus-ccz0.onrender.com',  # Render backend domain
     'nexus-rcoe.vercel.app',    # Frontend domain (Vercel)
