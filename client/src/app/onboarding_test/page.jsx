@@ -24,13 +24,13 @@ export default function ProctoredTestPage() {
   const timerRef = useRef(null);
 
   const [questions] = useState([
-    { id: 1, question: "Explain the difference between Git and GitHub." },
-    { id: 2, question: "How can you revert a commit that has already been pushed to a remote repository?"   },
-    { id: 3, question: "What is a Git rebase and how is it different from merge?" },
+{ id: 1, question: "What is the purpose of a .gitignore file and how do you use it?" },
+{ id: 2, question: "Explain what happens when you run 'git fetch' versus 'git pull'." },
+{ id: 3, question: "What is a detached HEAD state in Git and how can you fix it?" },
     { id: 4, question: "Fareed’s last minute commit modifies key dependency versions, causing build failures and breaking the project. Rehbar identifies the issue, rolls back the faulty commit, and restores the last stable version. Which Git commands did he likely use to revert the broken commit and fix the build" },
     { id: 5, question: "Ali accidentally pushed his '.env' file with sensitive credentials to GitHub. What git steps should he follow to permanently remove it from the repo’s history (without making the repo private)?" },
     { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
-    { id: 7, question: "Tanushree pushes her half-written code right before Fareed merges his PR.Merge conflicts explode across 12 files ,Rehbar wants a clean rebase to merge without losing work.Which exact rebase workflow should Rehbar use to merge both PRs while keeping linear commit history?" },
+{ id: 7, question: "Afraa forked the repo six months ago. Fareed refactored main completely. Now she wants to sync her fork and create a PR. Rehbar’s scripts detect 894 conflicts. What’s the correct process for Afraa to sync her fork with upstream while preserving her local work and avoiding conflict hell?" },
   ]);
 
 
