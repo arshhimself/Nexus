@@ -65,7 +65,7 @@ const handleClick = async () => {
   setloading(true); // 👈 Show loader immediately
 
   try {
-    const response = await fetch(`/api/authentication/user`, {
+    const response = await fetch(`https://nexus-django.crodlin.in/api/authentication/user`, {
       method: "GET",
       headers: { Authorization: `${token}` },
     });
