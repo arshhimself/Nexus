@@ -7,7 +7,7 @@ def selected_users_emails():
       {"name": <user name>, "email": <email>}
     ]
     """
-    
+
     users = User.objects.filter(test_given=True)
 
     selected_list = []

@@ -1,0 +1,12 @@
+Hi {{ name }},
+
+Congratulations! You’ve been selected as an L0 Contributor for Nexus, the Open Source community of RCOE Computer Science department. We’re glad to have you aboard!
+
+We will schedule the first introductory meeting very soon — keep an eye on your inbox for meeting details and the invitation link.
+
+"The most important skill in open source isn’t coding — it’s communication." — Karl Fogel, author of Producing Open Source Software
+
+As open source demands clear communication and consistent participation, we’d be happy if you attend as many meets as possible.
+
+Warm regards,
+Team Nexus
