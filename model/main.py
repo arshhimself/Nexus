@@ -1,82 +1,30 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, TypedDict, Annotated
 import operator
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Send
 from langchain_openai import ChatOpenAI
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google.oauth2 import service_account
 from dotenv import load_dotenv
 import os
-import io
 from s3.main import upload_to_s3
 
-
+# Load .env environment variables
 load_dotenv()
 
-SCOPES = ["https://www.googleapis.com/auth/drive"]
-PARENT_FOLDER_ID = "1sltxx-kH3tZjX0-9YAY_XUokGqw1nad4"  # your Drive folder ID
-
-def authenticate():
-    """Authenticate using service account info from .env"""
-    service_account_info = {
-        "type": os.getenv("GDRIVE_TYPE"),
-        "project_id": os.getenv("GDRIVE_PROJECT_ID"),
-        "private_key_id": os.getenv("GDRIVE_PRIVATE_KEY_ID"),
-        "private_key": os.getenv("GDRIVE_PRIVATE_KEY").replace("\\n", "\n"),
-        "client_email": os.getenv("GDRIVE_CLIENT_EMAIL"),
-        "client_id": os.getenv("GDRIVE_CLIENT_ID"),
-        "auth_uri": os.getenv("GDRIVE_AUTH_URI"),
-        "token_uri": os.getenv("GDRIVE_TOKEN_URI"),
-        "auth_provider_x509_cert_url": os.getenv("GDRIVE_AUTH_PROVIDER_X509_CERT_URL"),
-        "client_x509_cert_url": os.getenv("GDRIVE_CLIENT_X509_CERT_URL"),
-    }
-    creds = service_account.Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
-    service = build("drive", "v3", credentials=creds)
-    return service
-
-
-def upload_video_to_drive(video_bytes, filename):
-    """Uploads MP4 to Google Drive using service account"""
-    service = authenticate()
-
-    # Temporarily save file
-    temp_path = f"temp_{filename}"
-    with open(temp_path, "wb") as f:
-        f.write(video_bytes)
-
-    file_metadata = {
-        "name": filename,
-        "parents": [PARENT_FOLDER_ID],
-    }
-
-    media = MediaFileUpload(temp_path, mimetype="video/mp4", resumable=True)
-    uploaded_file = service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-    file_id = uploaded_file.get("id")
-
-    # Make it public
-    service.permissions().create(fileId=file_id, body={"type": "anyone", "role": "reader"}).execute()
-
-    # Public URL
-    public_url = f"https://drive.google.com/uc?id={file_id}&export=download"
-
-    # Cleanup
-    os.remove(temp_path)
-
-    return {"file_id": file_id, "public_url": public_url}
-
-
-
+# ------------------------------
+#  GitHub Q&A Evaluator Setup
+# ------------------------------
 
 class Result(BaseModel):
     feedback: str = Field(
-        description="tell if the answer is right or wrong, if wrong then where it went wrong with respect to GitHub"
+        description="Tell if the answer is right or wrong, if wrong then where it went wrong with respect to GitHub"
     )
     score: int = Field(
-        description="give a score to this answer based on how correct it is; if completely out of context give 0, if completely right give 10",
+        description="Give a score to this answer based on correctness; 0 if wrong, 10 if perfect",
         ge=0, le=10,
     )
 
@@ -99,20 +47,28 @@ class State(TypedDict):
 
 model = ChatOpenAI(model="gpt-4o-mini").with_structured_output(Result)
 
+
 def split_tasks(state: State):
     return [Send("analyze", qa) for qa in state["questions_answers"]]
 
+
 def analyze(qa: dict):
     output = model.invoke(
-f"Evaluate the following question and answer pair as a GitHub professor mentoring beginners. Focus only on how accurately and appropriately the answer addresses the question. Ignore grammatical mistakes, typos, or spelling errors. Consider that the answers are short and from beginners—reward logical effort and understanding. If the answer is correct and to the point, give a higher score. If it adds any useful insight beyond the question, give bonus points. If it partially or incorrectly answers the question, deduct points. Provide brief, constructive feedback and assign a score out of 10.\n"
+        f"Evaluate the following question and answer pair as a GitHub professor mentoring beginners. "
+        f"Focus only on how accurately and appropriately the answer addresses the question. Ignore grammar mistakes. "
+        f"Reward logical effort. If correct, give higher score. If adds useful insights, give bonus points. "
+        f"If incorrect, deduct points. Provide brief feedback and score out of 10.\n"
         f"Q: {qa['q']}\nA: {qa['a']}"
     )
     return {"feedbacks": [output.feedback], "scores": [output.score]}
+
 
 def summarize(state: State):
     avg = sum(state["scores"]) / len(state["scores"])
     return {"avg_score": round(avg, 2)}
 
+
+# Build LangGraph workflow
 graph = StateGraph(State)
 graph.add_node("analyze", analyze)
 graph.add_node("summarize", summarize)
@@ -122,17 +78,55 @@ graph.add_edge("summarize", END)
 workflow = graph.compile()
 
 
+# ------------------------------
+#  FastAPI App Configuration
+# ------------------------------
 
 app = FastAPI(title="GitHub Q&A Evaluator + Proctored API", version="2.0.0")
 
+# ✅ Allowed hosts (same as Django ALLOWED_HOSTS)
+ALLOWED_HOSTS = [
+    "nexus-ccz0.onrender.com",   # Render backend
+    "nexus-rcoe.vercel.app",     # Vercel frontend
+    "127.0.0.1",
+    "localhost",
+    "13.200.225.213",            # Your public IP
+    "3.110.209.65",
+    '13.232.189.207',
+    "nexus-fastapi.crodlin.in"
+    "http://localhost:8000",
+]
+
+# ✅ CORS Origins (allowed frontend URLs)
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "https://nexus-ccz0.onrender.com",
+    "https://nexus-rcoe.vercel.app",
+]
+
+# ✅ Middleware Setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change to frontend origin later
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=True,  # Important for cookies/tokens
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        *ALLOWED_HOSTS,
+        "*.onrender.com",  # allow any Render subdomain
+        "*.vercel.app",    # allow any Vercel subdomain
+    ],
+)
+
+# ------------------------------
+#  API Routes
+# ------------------------------
 
 @app.get("/")
 def root():
@@ -146,23 +140,11 @@ def analyze_qas(data: QARequest):
     return result
 
 
-@app.post("/upload-video/")
-async def upload_video(file: UploadFile = File(...)):
-    """
-    Upload MP4 video to Google Drive via service account.
-    """
-    try:
-        contents = await file.read()
-        result = upload_video_to_drive(contents, file.filename)
-        return {"status": "success", **result}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
 @app.post("/upload/s3/")
-async def upload_file(
-    file: UploadFile = File(...), 
-    s3_file_name: str = Form(None)
-):
+async def upload_file(file: UploadFile = File(...), s3_file_name: str = Form(None)):
+    """
+    Uploads file to S3 bucket.
+    """
     try:
         print(f"Uploading file: {file.filename} to S3")
         target_file_name = s3_file_name if s3_file_name else file.filename
@@ -170,13 +152,15 @@ async def upload_file(
 
         success = upload_to_s3(file.file, target_file_name)
         print(f"S3 upload success: {success}")
+
         if success:
             return {
                 "message": f"File '{file.filename}' uploaded successfully to S3",
-                "s3_file_name": target_file_name
+                "s3_file_name": target_file_name,
             }
         else:
             raise HTTPException(status_code=500, detail="Credentials not available")
+
     except Exception as e:
         print(f"Error uploading to S3: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

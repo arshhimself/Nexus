@@ -3,34 +3,36 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { useAuth } from "@/app/context/AuthContext";
+
 export default function NavBar() {
-    const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn } = useAuth();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
+  const toggleSidebar = () => setIsOpen(!isOpen);
 
-  const toggleSidebar = () => setIsOpen(!isOpen)
-  
   const handleNavigation = (path) => {
-    router.push(path)
-    setIsOpen(false)
-  }
+    router.push(path);
+    setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/");
+    window.location.reload(); // 👈 refresh to reset state
+  };
 
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-40">
         <nav className="max-w-5xl mx-auto px-4 sm:px-8 py-5">
           <div className="relative w-full h-14 rounded-lg overflow-hidden">
-            {/* Clear glass with minimal blur */}
+            {/* Glass effect layers */}
             <div className="absolute inset-0 backdrop-blur-sm bg-white/[0.01]" />
-            
-            {/* Refraction highlight on edges */}
             <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] via-transparent to-white/[0.05]" />
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] via-transparent to-transparent" />
-            
-            {/* Crystal clear border */}
             <div className="absolute inset-0 rounded-lg border border-white/10" />
-            
+
             {/* Content */}
             <div className="relative w-full h-full flex items-center justify-between px-4 sm:px-8">
               {/* Logo */}
@@ -43,7 +45,7 @@ export default function NavBar() {
                 </div>
                 <span className="text-white font-light text-base tracking-widest">NEXUS</span>
               </div>
-              
+
               {/* Desktop Navigation */}
               <ul className="hidden md:flex items-center space-x-8">
                 <li>
@@ -71,27 +73,33 @@ export default function NavBar() {
                   </button>
                 </li>
               </ul>
-              
+
               {/* Desktop Action */}
               <div className="hidden md:flex items-center space-x-6">
-  {isLoggedIn ? (
-    <button
-      onClick={() => router.push('/userInfo')}
-      className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
-    >
-     User Profile
-    </button>
-  ) : (
-    <button
-      onClick={() => router.push('/login')}
-      className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
-    >
-      Login
-    </button>
-  )}
-</div>
-
-
+                {isLoggedIn ? (
+                  <>
+                    <button
+                      onClick={() => router.push('/userInfo')}
+                      className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
+                    >
+                      User Profile
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="text-white/70 hover:text-red-400 text-xs font-light tracking-widest uppercase transition-all duration-300"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => router.push('/login')}
+                    className="text-white text-xs font-light tracking-widest uppercase transition-colors duration-500 hover:text-white/80"
+                  >
+                    Login
+                  </button>
+                )}
+              </div>
 
               {/* Mobile Menu Button */}
               <button
@@ -123,7 +131,7 @@ export default function NavBar() {
         {/* Glass effect on sidebar */}
         <div className="absolute inset-0 backdrop-blur-sm bg-neutral-950" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] via-transparent to-transparent" />
-        
+
         <div className="relative h-full flex flex-col">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/10">
@@ -173,31 +181,33 @@ export default function NavBar() {
           </nav>
 
           {/* Sidebar Footer */}
-          
-          {
-  isLoggedIn ? (
-    <div className="p-6 border-t border-white/10">
-      <button
-         onClick={() => router.push('/userInfo')}
-        className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
-      >
-        User Profile
-      </button>
-    </div>
-  ) : (
-    <div className="p-6 border-t border-white/10">
-      <button
-        onClick={() => handleNavigation('/login')}
-        className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
-      >
-        Login
-      </button>
-    </div>
-  )
-}
-
+          {isLoggedIn ? (
+            <div className="p-6 border-t border-white/10 space-y-3">
+              <button
+                onClick={() => handleNavigation('/userInfo')}
+                className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
+              >
+                User Profile
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full py-3 px-6 rounded-lg border border-red-400/30 text-red-400 text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-red-400/10 hover:border-red-400/50"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="p-6 border-t border-white/10">
+              <button
+                onClick={() => handleNavigation('/login')}
+                className="w-full py-3 px-6 rounded-lg border border-white/20 text-white text-sm font-light tracking-widest uppercase transition-all duration-300 hover:bg-white/5 hover:border-white/30"
+              >
+                Login
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>
-  )
+  );
 }

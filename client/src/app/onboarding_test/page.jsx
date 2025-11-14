@@ -24,13 +24,21 @@ export default function ProctoredTestPage() {
   const timerRef = useRef(null);
 
   const [questions] = useState([
-    { id: 1, question: "What is the purpose of Git in version control?" },
-    { id: 2, question: "Explain the difference between Git and GitHub." },
-    { id: 3, question: "How do you create a new branch in Git?" },
+{ id: 1, question: "What is the purpose of a .gitignore file and how do you use it?" },
+{ id: 2, question: "Explain what happens when you run 'git fetch' versus 'git pull'." },
+{ id: 3, question: "What is a detached HEAD state in Git and how can you fix it?" },
+    { id: 4, question: "Fareed’s last minute commit modifies key dependency versions, causing build failures and breaking the project. Rehbar identifies the issue, rolls back the faulty commit, and restores the last stable version. Which Git commands did he likely use to revert the broken commit and fix the build" },
+    { id: 5, question: "Ali accidentally pushed his '.env' file with sensitive credentials to GitHub. What git steps should he follow to permanently remove it from the repo’s history (without making the repo private)?" },
+    { id: 6, question: "Fareed and Rehbar are working on the backend’ branch. Aafiya accidentally force-pushes an old version of the same branch to origin. Now, all of Fareed’s commits are gone from GitHub, but they still exist on his local machine. What exact git commands should Fareed run to recover his lost commits, make sure the branch history stays clean (no duplicated commits), and push it safely to remote without overwriting Rehbar’s pending PR?" },
+{ id: 7, question: "Afraa forked the repo six months ago. Fareed refactored main completely. Now she wants to sync her fork and create a PR. Rehbar’s scripts detect 894 conflicts. What’s the correct process for Afraa to sync her fork with upstream while preserving her local work and avoiding conflict hell?" },
   ]);
 
-  const [answers, setAnswers] = useState({});
 
+  const [answers, setAnswers] = useState({});
+const answersRef = useRef({});
+useEffect(() => {
+  answersRef.current = answers;
+}, [answers]);
   useEffect(() => {
     // Hide any navbar coming from parent layout on this page
     const navSelectors = 'nav, [role="navigation"], .navbar, .nav';
@@ -78,11 +86,66 @@ export default function ProctoredTestPage() {
 
   useEffect(() => {
     if (isLocked && testStarted) {
-      const timer = setTimeout(() => setShowLoader(false), 5000);
+      const timer = setTimeout(() => setShowLoader(false), 10000);
       return () => clearTimeout(timer);
     }
   }, [isLocked, testStarted]);
 
+    useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "PrintScreen") {
+        addToast("Screenshots are disabled during this test!", "error")
+        document.body.style.filter = "blur(8px)"
+        setTimeout(() => (document.body.style.filter = "none"), 1000)
+        e.preventDefault()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [])
+
+const enterFullScreen = async (retryCount = 0) => {
+  const el = document.documentElement;
+  
+  try {
+    if (el.requestFullscreen) {
+      await el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+      await el.webkitRequestFullscreen();
+    } else if (el.mozRequestFullScreen) {
+      await el.mozRequestFullScreen();
+    } else if (el.msRequestFullscreen) {
+      await el.msRequestFullscreen();
+    } else {
+      // Fallback: try to maximize window
+      window.moveTo(0, 0);
+      window.resizeTo(screen.availWidth, screen.availHeight);
+    }
+  } catch (err) {
+    console.warn("Fullscreen request failed:", err);
+    
+    // Retry up to 3 times with exponential backoff
+    if (retryCount < 3) {
+      const delay = Math.pow(2, retryCount) * 500; // 500ms, 1000ms, 2000ms
+      setTimeout(() => enterFullScreen(retryCount + 1), delay);
+    } else {
+      addToast("Could not enter fullscreen automatically. Please press F11 or maximize the window.", "warning");
+    }
+  }
+};
+useEffect(() => {
+  const handleBlur = () => {
+    if (testStarted && !isLocked && document.hasFocus()) {
+      // Window might have lost focus due to alt-tab or other window interaction
+      triggerWarning();
+      addToast("Focus loss detected. Please stay in the test window.", "warning");
+    }
+  };
+
+  window.addEventListener("blur", handleBlur);
+  return () => window.removeEventListener("blur", handleBlur);
+}, [testStarted, isLocked]);
   useEffect(() => {
     if (cameraAccess === true && videoRef.current && streamRef.current) {
       try {
@@ -97,24 +160,80 @@ export default function ProctoredTestPage() {
     }
   }, [cameraAccess]);
 
-  useEffect(() => {
-    if (!testStarted || isLocked) return;
+useEffect(() => {
+  if (!testStarted || isLocked) return;
 
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          setIsLocked(true);
-          addToast("⏰ Time's up! Test submitted.", "error");
-          stopRecording(); // 🎥 Stop recording on time-up
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  timerRef.current = setInterval(() => {
+    setTimeLeft((prev) => {
+      if (prev <= 1) {
+        clearInterval(timerRef.current);
+        setIsLocked(true);
+        addToast("⏰ Time's up! Test submitted.", "error");
+        stopRecording();
+        handleAutoSubmit(); // 🆕 NEW: Call auto-submit function
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
 
-    return () => clearInterval(timerRef.current);
-  }, [testStarted, isLocked]);
+  return () => clearInterval(timerRef.current);
+}, [testStarted, isLocked]);
+
+const handleAutoSubmit = async () => {
+  // Use answersRef to get the latest answers (this avoids closure issues)
+  const currentAnswers = { ...answersRef.current };
+  
+  const formattedOutput = {
+    questions_answers: questions.map((q) => ({
+      q: q.question,
+      a: currentAnswers[q.id] || "i dont know",
+    })),
+  };
+
+  console.log("Auto-submitting due to timeout:", formattedOutput);
+  await submitQuizData(formattedOutput);
+};
+
+
+
+// 🆕 EXTRACT SUBMISSION LOGIC TO REUSABLE FUNCTION
+const submitQuizData = async (formattedOutput) => {
+  try {
+    // Step 1: Analyze answers
+    const analyzeRes = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formattedOutput),
+    });
+    
+    if (!analyzeRes.ok) throw new Error("Analysis failed");
+    
+    const analyzedData = await analyzeRes.json();
+    setdata(analyzedData);
+
+    // Step 2: Submit to Django
+    const token = localStorage.getItem("token");
+    const submitRes = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/quiz/submit/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
+      },
+      body: JSON.stringify(analyzedData),
+    });
+
+    if (!submitRes.ok) throw new Error("Submission failed");
+    
+    const submitResponse = await submitRes.json();
+    console.log("Timeout auto-submit successful:", submitResponse);
+    addToast("✅ Test auto-submitted due to timeout", "success");
+    
+  } catch (err) {
+    console.error("Timeout auto-submit failed:", err);
+    addToast("Error auto-submitting test", "error");
+  }
+};
 
   const addToast = (message, type = "warning") => {
     const id = Date.now();
@@ -137,22 +256,35 @@ export default function ProctoredTestPage() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isLocked, warnings]);
 
-  const triggerWarning = () => {
-    setWarnings((prev) => {
-      const newWarnings = prev + 1;
-      addToast(
-        `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
-        "warning"
-      );
+const triggerWarning = async () => {
+  setWarnings((prev) => {
+    const newWarnings = prev + 1;
+    
+    addToast(
+      `Warning ${newWarnings} of 3: Please do not switch tabs or minimize the window.`,
+      "warning"
+    );
 
-      if (newWarnings >= 3) {
-        setIsLocked(true);
-        stopRecording(); // 🎥 Stop recording on lock
-        addToast("Test locked due to multiple warnings", "error");
-      }
-      return newWarnings;
-    });
-  };
+    if (newWarnings >= 3) {
+      setIsLocked(true);
+      stopRecording();
+      addToast("Test locked due to multiple warnings", "error");
+
+      // Use answersRef to get latest answers
+      const formattedOutput = {
+        questions_answers: questions.map((q) => ({
+          q: q.question,
+          a: answersRef.current[q.id] || "I dont know",
+        })),
+      };
+
+      submitQuizData(formattedOutput);
+    }
+    
+    return newWarnings;
+  });
+};
+
 
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
@@ -194,13 +326,18 @@ export default function ProctoredTestPage() {
     };
   }, []);
 
-  const handleStartTest = () => {
-    if (cameraAccess === true) {
-      setTestStarted(true);
-      addToast("Test started. Answer each question and submit to continue.", "success");
-      startRecording(); // 🎥 Start recording when test starts
-    }
-  };
+const handleStartTest = async () => {
+  if (cameraAccess === true) {
+    setTestStarted(true);
+    addToast("Test started. Answer each question and submit to continue.", "success");
+    startRecording();
+    
+    // Add a small delay to ensure DOM is ready, then enter fullscreen
+    setTimeout(() => {
+      enterFullScreen();
+    }, 500);
+  }
+};
 
   const handleSubmitQuestion = async () => {
     const qId = questions[currentQuestionIndex].id;
@@ -217,7 +354,7 @@ export default function ProctoredTestPage() {
       const formattedOutput = {
         questions_answers: questions.map((q) => ({
           q: q.question,
-          a: answers[q.id] || "",
+          a: answers[q.id] || " i dont know",
         })),
       };
 
@@ -287,6 +424,81 @@ export default function ProctoredTestPage() {
       console.log("🎥 Recording stopped.");
     }
   };
+useEffect(() => {
+  let fullScreenAttempt = null;
+
+  const handleFullScreenChange = () => {
+    if (!document.fullscreenElement && testStarted && !isLocked) {
+      triggerWarning();
+      addToast("Fullscreen exit detected. Returning to fullscreen mode.", "warning");
+      
+      // Clear any previous attempt
+      if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+      
+      fullScreenAttempt = setTimeout(() => {
+        enterFullScreen();
+      }, 1000);
+    }
+  };
+
+  const handleResize = () => {
+    // More reliable check for window state
+    const isFullscreen = !!document.fullscreenElement;
+    const isMaximized = window.outerWidth >= screen.availWidth || window.outerHeight >= screen.availHeight;
+    
+    if (!isFullscreen && !isMaximized && testStarted && !isLocked) {
+      triggerWarning();
+      addToast("Window resize detected. Returning to fullscreen mode.", "warning");
+      
+      // Clear any previous attempt
+      if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+      
+      fullScreenAttempt = setTimeout(() => {
+        enterFullScreen();
+      }, 1000);
+    }
+  };
+
+  // Also check for window move events (dragging the window)
+  const handleMove = () => {
+    const isFullscreen = !!document.fullscreenElement;
+    if (!isFullscreen && testStarted && !isLocked) {
+      triggerWarning();
+      addToast("Please stay in fullscreen mode during the test.", "warning");
+      
+      if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+      
+      fullScreenAttempt = setTimeout(() => {
+        enterFullScreen();
+      }, 1000);
+    }
+  };
+
+  document.addEventListener("fullscreenchange", handleFullScreenChange);
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("move", handleMove);
+  
+  return () => {
+    document.removeEventListener("fullscreenchange", handleFullScreenChange);
+    window.removeEventListener("resize", handleResize);
+    window.removeEventListener("move", handleMove);
+    if (fullScreenAttempt) clearTimeout(fullScreenAttempt);
+  };
+}, [testStarted, isLocked]);
+// Periodic fullscreen check
+useEffect(() => {
+  if (!testStarted || isLocked) return;
+
+  const fullscreenCheckInterval = setInterval(() => {
+    if (!document.fullscreenElement) {
+      triggerWarning();
+      addToast("Please return to fullscreen mode.", "warning");
+      enterFullScreen();
+    }
+  }, 5000); // Check every 5 seconds
+
+  return () => clearInterval(fullscreenCheckInterval);
+}, [testStarted, isLocked]);
 
   const uploadToServer = async (file) => {
     const formData = new FormData();
@@ -305,7 +517,33 @@ export default function ProctoredTestPage() {
     }
   };
   // 🎥 END RECORDING
+useEffect(() => {
+  const handleKeyDown = (e) => {
+    // Prevent F11 (fullscreen toggle)
+    if (e.key === "F11") {
+      e.preventDefault();
+      addToast("Fullscreen toggle is disabled during the test.", "warning");
+      return false;
+    }
+    
+    // Prevent PrintScreen
+    if (e.key === "PrintScreen") {
+      addToast("Screenshots are disabled during this test!", "error");
+      document.body.style.filter = "blur(8px)";
+      setTimeout(() => (document.body.style.filter = "none"), 1000);
+      e.preventDefault();
+    }
 
+    // Prevent Alt+Tab, Win+Tab, etc.
+    if ((e.altKey && e.key === "Tab") || (e.metaKey && e.key === "Tab")) {
+      e.preventDefault();
+      triggerWarning();
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyDown);
+  return () => document.removeEventListener("keydown", handleKeyDown);
+}, [testStarted, isLocked]);
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

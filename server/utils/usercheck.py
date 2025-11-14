@@ -23,12 +23,9 @@ def authenticate_request(request, need_user=False):
     except jwt.InvalidTokenError:
         raise AuthenticationFailed('Invalid token!')
 
-    user = User.objects.filter(id=payload['id']).first()
+    user = User.objects.filter(email=payload['email']).first()
     if not user:
         raise AuthenticationFailed('User not found!')
 
-    # 🔑 Session ID check (important for single device login)
-    if user.session_id != payload.get('session_id'):
-        raise AuthenticationFailed('Session invalid — logged in from another device!')
 
     return user
