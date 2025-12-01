@@ -77,7 +77,7 @@ export default function IdeasPage() {
   const votesRemaining = MAX_VOTES - votedIdeaIds.length;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black font-sans relative overflow-hidden">
+<div className="min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black font-sans relative scroll-smooth">
       
       {/* --- Background Pattern --- */}
       <div 

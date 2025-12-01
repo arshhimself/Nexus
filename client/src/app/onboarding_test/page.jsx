@@ -550,7 +550,7 @@ useEffect(() => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+    <div className="min-h-screen bg-black relative  ">
       {/* Grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
@@ -598,7 +598,7 @@ useEffect(() => {
       {/* Webcam Preview - Top Right */}
       <div className="fixed top-6 right-6 z-40">
         {cameraAccess === true ? (
-          <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-white/20 shadow-lg backdrop-blur-xl bg-white/5">
+          <div className="w-28 h-28 rounded-full border-2 border-white/20 shadow-lg backdrop-blur-xl bg-white/5">
             <video
               ref={videoRef}
               autoPlay
@@ -608,13 +608,13 @@ useEffect(() => {
             />
           </div>
         ) : cameraAccess === false ? (
-          <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-red-500/50 shadow-lg backdrop-blur-xl bg-red-500/10 flex items-center justify-center">
+          <div className="w-28 h-28 rounded-full   border-2 border-red-500/50 shadow-lg backdrop-blur-xl bg-red-500/10 flex items-center justify-center">
             <span className="text-xs text-red-400 text-center px-2">
               Camera Denied
             </span>
           </div>
         ) : (
-          <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-white/20 shadow-lg backdrop-blur-xl bg-white/5 flex items-center justify-center">
+          <div className="w-28 h-28 rounded-full   border-2 border-white/20 shadow-lg backdrop-blur-xl bg-white/5 flex items-center justify-center">
             <span className="text-xs text-white/50">Loading...</span>
           </div>
         )}
