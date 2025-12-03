@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/authentication/',include('authentication.urls')),
     path('api/',include('quiz.urls')),
     path('',health_check),
-    
+    path("api/", include("ideas.urls")),
+
 
 ]

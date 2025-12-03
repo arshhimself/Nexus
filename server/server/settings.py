@@ -57,7 +57,8 @@ INSTALLED_APPS = [
     'authentication',
     'corsheaders',
     'quiz',
-    'emailer'
+    'emailer',
+    "ideas"
 ]
 
 MIDDLEWARE = [
