@@ -23,6 +23,9 @@ export default function IdeasPage() {
   // Form States
   const [formData, setFormData] = useState({ title: '', description: '' });
   const [commentInput, setCommentInput] = useState("");
+  
+  // Processing state
+  const [processingVote, setProcessingVote] = useState(null);
 
   // --- Fetch ideas and user votes on component mount ---
   useEffect(() => {
@@ -103,44 +106,59 @@ export default function IdeasPage() {
       setCommentInput("");
     }
   };
-  
+
   const handleVote = async (id) => {
     const token = localStorage.getItem("token");
-    const isCurrentlyVoted = votedIdeaIds.includes(id);
-
-    // Check vote limit BEFORE making API call
-    if (!isCurrentlyVoted && userVotes >= MAX_VOTES) {
-      alert(`Vote limit reached! You can only vote for a maximum of ${MAX_VOTES} ideas.`);
-      return; 
+    if (!token) {
+      router.push("/login");
+      return;
     }
 
-    // OPTIMISTIC UPDATE: Immediately update UI
-    setIdeas((prev) =>
-      prev.map((idea) => {
+    // Prevent multiple clicks on the same vote button
+    if (processingVote === id) return;
+    
+    setProcessingVote(id);
+
+    const isCurrentlyVoted = votedIdeaIds.includes(id);
+
+    // Check vote limit BEFORE optimistic update
+    if (!isCurrentlyVoted && userVotes >= MAX_VOTES) {
+      alert(`Vote limit reached! You can only vote for a maximum of ${MAX_VOTES} ideas.`);
+      setProcessingVote(null);
+      return;
+    }
+
+    // Store previous state for rollback
+    const previousIdeas = [...ideas];
+    const previousVotedIds = [...votedIdeaIds];
+    const previousUserVotes = userVotes;
+
+    try {
+      // OPTIMISTIC UPDATE
+      setIdeas(prev => prev.map(idea => {
         if (idea.id === id) {
-          const currentVotes = idea.num_votes !== undefined ? idea.num_votes : idea.votes;
-          const newVotes = isCurrentlyVoted ? currentVotes - 1 : currentVotes + 1;
-          return { 
-            ...idea, 
-            votes: newVotes,
-            num_votes: newVotes
+          const currentVotes = idea.votes_count !== undefined ? idea.votes_count : (idea.num_votes !== undefined ? idea.num_votes : idea.votes);
+          const newVotes = isCurrentlyVoted ? Math.max(0, currentVotes - 1) : currentVotes + 1;
+          return {
+            ...idea,
+            votes_count: newVotes,
+            num_votes: newVotes,
+            votes: newVotes
           };
         }
         return idea;
-      })
-    );
+      }));
 
-    // Update local voted state immediately
-    if (isCurrentlyVoted) {
-      setVotedIdeaIds(votedIdeaIds.filter(votedId => votedId !== id));
-      setUserVotes(prev => prev - 1);
-    } else {
-      setVotedIdeaIds([...votedIdeaIds, id]);
-      setUserVotes(prev => prev + 1);
-    }
+      // Update local state
+      if (isCurrentlyVoted) {
+        setVotedIdeaIds(prev => prev.filter(votedId => votedId !== id));
+        setUserVotes(prev => Math.max(0, prev - 1));
+      } else {
+        setVotedIdeaIds(prev => [...prev, id]);
+        setUserVotes(prev => prev + 1);
+      }
 
-    // Call API in background
-    try {
+      // API CALL
       const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_URL}/api/ideas/${id}/vote/`, {
         method: "POST",
         headers: {
@@ -151,16 +169,38 @@ export default function IdeasPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update vote");
+        throw new Error("Vote failed");
       }
 
-      // Refresh data from server to ensure consistency
-      fetchUserVotes();
+      const data = await response.json();
+      
+      // Update with actual server response
+      setIdeas(prev => prev.map(idea => {
+        if (idea.id === id) {
+          return {
+            ...idea,
+            votes_count: data.votes_count,
+            num_votes: data.votes_count,
+            votes: data.votes_count
+          };
+        }
+        return idea;
+      }));
+
+      // Refresh user votes to ensure sync
+      await fetchUserVotes();
       
     } catch (err) {
-      console.log("Error updating vote:", err);
-      // Revert optimistic update if API call fails
-      fetchData();
+      console.log("Vote error:", err);
+      
+      // ROLLBACK on error
+      setIdeas(previousIdeas);
+      setVotedIdeaIds(previousVotedIds);
+      setUserVotes(previousUserVotes);
+      
+      alert("Failed to update vote. Please try again.");
+    } finally {
+      setProcessingVote(null);
     }
   };
 
@@ -203,7 +243,7 @@ export default function IdeasPage() {
     }
   };
 
-  const handleCommentSubmit = async (e, ideaId) => {
+const handleCommentSubmit = async (e, ideaId) => {
     e.preventDefault();
     if (!commentInput.trim()) return;
 
@@ -246,15 +286,15 @@ export default function IdeasPage() {
   };
 
   const sortedIdeas = [...ideas].sort((a, b) => {
-    const aVotes = a.num_votes !== undefined ? a.num_votes : a.votes;
-    const bVotes = b.num_votes !== undefined ? b.num_votes : b.votes;
+    const aVotes = a.votes_count !== undefined ? a.votes_count : (a.num_votes !== undefined ? a.num_votes : a.votes || 0);
+    const bVotes = b.votes_count !== undefined ? b.votes_count : (b.num_votes !== undefined ? b.num_votes : b.votes || 0);
     return bVotes - aVotes;
   });
   
   const votesRemaining = MAX_VOTES - userVotes;
 
   // Main loading state
-  if (isLoading) {
+  if (isLoading && ideas.length === 0) {
     return (
       <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
         <div className="text-center">
@@ -346,8 +386,9 @@ export default function IdeasPage() {
                   const areCommentsOpen = activeCommentId === idea.id;
                   const isVoted = votedIdeaIds.includes(idea.id);
                   const isDisabled = !isVoted && userVotes >= MAX_VOTES;
+                  const isProcessing = processingVote === idea.id;
                   
-                  const voteCount = idea.num_votes !== undefined ? idea.num_votes : idea.votes;
+                  const voteCount = idea.votes_count !== undefined ? idea.votes_count : (idea.num_votes !== undefined ? idea.num_votes : idea.votes || 0);
 
                   return (
                       <motion.div 
@@ -372,7 +413,7 @@ export default function IdeasPage() {
                               e.stopPropagation();
                               handleVote(idea.id);
                           }}
-                          disabled={isDisabled}
+                          disabled={isDisabled || isProcessing}
                           className={`relative flex flex-col items-center justify-center min-w-[30px] h-[30px] rounded-full border transition-all duration-200 mt-2 
                               ${
                               isVoted 
@@ -381,14 +422,15 @@ export default function IdeasPage() {
                                   ? 'bg-transparent text-gray-700 border-white/5 cursor-not-allowed opacity-50' 
                                   : 'bg-transparent text-gray-400 border-white/10 hover:border-white hover:text-white' 
                               }
+                              ${isProcessing ? 'opacity-50 cursor-wait' : ''}
                           `}
                           >
-                          {isVoted && (
+                          {isVoted && !isProcessing && (
                             <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75"></div>
                           )}
                           <ArrowUp 
                             size={16} 
-                            className={`relative z-10 ${isVoted ? 'stroke-[3px]' : 'stroke-1'}`}
+                            className={`relative z-10 ${isVoted ? 'stroke-[3px]' : 'stroke-1'} ${isProcessing ? 'animate-pulse' : ''}`}
                           />
                           </button>
 

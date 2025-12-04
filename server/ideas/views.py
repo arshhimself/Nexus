@@ -8,36 +8,29 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.db.models import Count
 from random import randint
 
-
 from authentication.models import User
 
 from .models import Idea, Comment, Vote
 from .serializers import IdeaSerializer, IdeaCreateSerializer, CommentSerializer
 
-
-
-SECRET = "secret"   # apne hisaab se env me daal dena
+SECRET = "secret"  
 MAX_VOTES = 3
 
-
 # ---------------------- JWT VALIDATION ----------------------
-import jwt
-from rest_framework.exceptions import AuthenticationFailed
-
 def auth_user(request):
-        token = request.headers.get('Authorization')
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
+    token = request.headers.get('Authorization')
+    if not token:
+        raise AuthenticationFailed('Unauthenticated!')
 
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Token expired!')
-        except jwt.InvalidTokenError:
-            raise AuthenticationFailed('Invalid token!')
+    try:
+        payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Token expired!')
+    except jwt.InvalidTokenError:
+        raise AuthenticationFailed('Invalid token!')
 
-        user = User.objects.filter(email=payload['email']).first()
-        return user
+    user = User.objects.filter(email=payload['email']).first()
+    return user
 
 # --------------------------- IDEAS ---------------------------
 class IdeaListCreateView(APIView):
@@ -53,14 +46,14 @@ class IdeaListCreateView(APIView):
 
     # POST → Login needed
     def post(self, request):
-            user = auth_user(request)  # JWT user
-            serializer = IdeaCreateSerializer(data=request.data, context={'user': user})
+        user = auth_user(request)  # JWT user
+        serializer = IdeaCreateSerializer(data=request.data, context={'user': user})
 
-            if serializer.is_valid():
-                serializer.save()  # author automatically set
-                return Response(serializer.data, status=201)
+        if serializer.is_valid():
+            serializer.save()  # author automatically set
+            return Response(serializer.data, status=201)
 
-            return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=400)
 
 
 class IdeaRetrieveUpdateDeleteView(APIView):
@@ -118,21 +111,27 @@ class ToggleVoteView(APIView):
         user = auth_user(request)
         idea = get_object_or_404(Idea, id=idea_id)
 
+        # Get the vote intent from frontend
+        should_vote = request.data.get('vote', True)
+        
         existing = Vote.objects.filter(user=user, idea=idea).first()
 
-        # UNVOTE
-        if existing:
-            existing.delete()
-            idea.votes_count = max(0, idea.votes_count - 1)
-            idea.save(update_fields=["votes_count"])
+        # UNVOTE - if user wants to unvote OR if they already voted
+        if not should_vote or existing:
+            if existing:
+                existing.delete()
+                idea.votes_count = max(0, idea.votes_count - 1)
+                idea.save(update_fields=["votes_count"])
 
             return Response({
                 "message": "unvoted",
-                "votes_count": idea.votes_count
+                "votes_count": idea.votes_count,
+                "voted": False
             })
 
-        # VOTE LIMIT CHECK
-        if Vote.objects.filter(user=user).count() >= MAX_VOTES:
+        # VOTE LIMIT CHECK - only when trying to vote
+        current_vote_count = Vote.objects.filter(user=user).count()
+        if current_vote_count >= MAX_VOTES:
             return Response(
                 {"detail": f"Vote limit reached ({MAX_VOTES})."},
                 status=400
@@ -145,18 +144,26 @@ class ToggleVoteView(APIView):
 
         return Response({
             "message": "voted",
-            "votes_count": idea.votes_count
+            "votes_count": idea.votes_count,
+            "voted": True
         }, status=201)
 
 
 class UserVotesView(APIView):
 
     def get(self, request):
-        user = auth_user(request)  # JWT se user nikala
+        user = auth_user(request)
 
-        voted_ids = list(
+        # Get list of idea IDs the user has voted for
+        voted_idea_ids = list(
             Vote.objects.filter(user=user)
             .values_list("idea_id", flat=True)
         )
+        
+        # Count total votes
+        total_votes = len(voted_idea_ids)
 
-        return Response({"voted_ideas": voted_ids})
+        return Response({
+            "voted_idea_ids": voted_idea_ids,
+            "total_votes": total_votes
+        })
