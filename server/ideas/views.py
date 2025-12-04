@@ -4,10 +4,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from .serializers import IdeaCreateSerializer
+from datetime import datetime
 from django.db.models import Count
 from random import randint
-
+from utils.email_service import start_email_thread
 from authentication.models import User
 
 from .models import Idea, Comment, Vote
@@ -46,15 +49,19 @@ class IdeaListCreateView(APIView):
 
     # POST → Login needed
     def post(self, request):
-        user = auth_user(request)  # JWT user
+        user = auth_user(request)
         serializer = IdeaCreateSerializer(data=request.data, context={'user': user})
 
         if serializer.is_valid():
-            serializer.save()  # author automatically set
+            idea = serializer.save()
+
+            # ---- Start background email thread ----
+            start_email_thread(idea)
+            # ---------------------------------------
+
             return Response(serializer.data, status=201)
 
         return Response(serializer.errors, status=400)
-
 
 class IdeaRetrieveUpdateDeleteView(APIView):
 
