@@ -16,7 +16,8 @@ def selected_users_emails():
         if user.email:  # ensure email exists
             selected_list.append({
                 "name": user.name if hasattr(user, "name") else user.username,
-                "email": user.email
+                "email": user.email,
+                "phone": user.phone if hasattr(user, "phone") else ""
             })
 
     return selected_list
