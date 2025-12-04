@@ -406,34 +406,42 @@ const handleCommentSubmit = async (e, ideaId) => {
                       </div>
 
                       <div className="flex items-start gap-4 md:gap-6">
-                          
-                          {/* Upvote Button with Glow Effect when Voted */}
-                          <button 
-                          onClick={(e) => {
-                              e.stopPropagation();
-                              handleVote(idea.id);
-                          }}
-                          disabled={isDisabled || isProcessing}
-                          className={`relative flex flex-col items-center justify-center min-w-[30px] h-[30px] rounded-full border transition-all duration-200 mt-2 
-                              ${
-                              isVoted 
-                              ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.5)]' 
-                              : isDisabled
-                                  ? 'bg-transparent text-gray-700 border-white/5 cursor-not-allowed opacity-50' 
-                                  : 'bg-transparent text-gray-400 border-white/10 hover:border-white hover:text-white' 
-                              }
-                              ${isProcessing ? 'opacity-50 cursor-wait' : ''}
-                          `}
-                          >
-                          {isVoted && !isProcessing && (
-                            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75"></div>
-                          )}
-                          <ArrowUp 
-                            size={16} 
-                            className={`relative z-10 ${isVoted ? 'stroke-[3px]' : 'stroke-1'} ${isProcessing ? 'animate-pulse' : ''}`}
-                          />
-                          </button>
+                            <div className="flex flex-col items-center">
+  <button 
+    onClick={(e) => {
+        e.stopPropagation();
+        handleVote(idea.id);
+    }}
+    disabled={isDisabled || isProcessing}
+    className={`relative flex flex-col items-center justify-center min-w-[30px] h-[30px] rounded-full border transition-all duration-200 mt-2 
+        ${
+        isVoted 
+        ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.5)]' 
+        : isDisabled
+            ? 'bg-transparent text-gray-700 border-white/5 cursor-not-allowed opacity-50' 
+            : 'bg-transparent text-gray-400 border-white/10 hover:border-white hover:text-white' 
+        }
+        ${isProcessing ? 'opacity-50 cursor-wait' : ''}
+    `}
+  >
+    {isVoted && !isProcessing && (
+      <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75"></div>
+    )}
+    <ArrowUp 
+      size={16} 
+      className={`relative z-10 ${isVoted ? 'stroke-[3px]' : 'stroke-1'} ${isProcessing ? 'animate-pulse' : ''}`}
+    />
+  </button>
 
+  <p className="text-xs text-gray-400 mt-1 text-center">
+    vote
+  </p>
+</div>
+
+                          {/* Upvote Button with Glow Effect when Voted */}
+                          
+
+                          
                           {/* Content Area */}
                           <div className="flex-1 overflow-hidden pr-16">
                               {/* Click title/desc to expand read more */}
