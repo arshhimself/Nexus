@@ -147,3 +147,16 @@ class ToggleVoteView(APIView):
             "message": "voted",
             "votes_count": idea.votes_count
         }, status=201)
+
+
+class UserVotesView(APIView):
+
+    def get(self, request):
+        user = auth_user(request)  # JWT se user nikala
+
+        voted_ids = list(
+            Vote.objects.filter(user=user)
+            .values_list("idea_id", flat=True)
+        )
+
+        return Response({"voted_ideas": voted_ids})

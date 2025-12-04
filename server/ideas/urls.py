@@ -3,7 +3,7 @@ from .views import (
     IdeaListCreateView,
     IdeaRetrieveUpdateDeleteView,
     CommentListCreateView,
-    ToggleVoteView
+    ToggleVoteView,UserVotesView
 )
 
 urlpatterns = [
@@ -13,4 +13,5 @@ urlpatterns = [
     path("ideas/<int:idea_id>/comments/", CommentListCreateView.as_view()),
 
     path("ideas/<int:idea_id>/vote/", ToggleVoteView.as_view()),
+    path("user/votes/", UserVotesView.as_view(), name="user-votes"),
 ]
