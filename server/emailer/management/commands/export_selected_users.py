@@ -20,17 +20,17 @@ class Command(BaseCommand):
         ws.title = "Selected Users"
 
         # Header
-        ws.append(["Name", "Email"])
+        ws.append(["Name", "Email", "Phone_Number"])
 
         # Add rows
         for u in users:
-            ws.append([u.get("name", ""), u.get("email", "")])
+            ws.append([u.get("name", ""), u.get("email", ""), u.get("phone", "")])
 
         # Output folder
         output_folder = "exports"
         os.makedirs(output_folder, exist_ok=True)
 
-        file_path = os.path.join(output_folder, "selected_users.xlsx")
+        file_path = os.path.join(output_folder, "selected_users_phone.xlsx")
 
         wb.save(file_path)
 
