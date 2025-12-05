@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+</head>
+
+<body style="margin:0;padding:0;background:#f6f8fa;font-family:Inter, Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:32px 0;">
+    <tr>
+      <td align="center">
+        
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation"
+               style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:26px 32px;background:linear-gradient(135deg,#0f172a,#0ea5a0);color:white;">
+              <h2 style="margin:0;font-size:22px;font-weight:600;">🔔 Post Activity Alert</h2>
+              <p style="margin:6px 0 0;font-size:14px;opacity:0.9;">A post you commented on has new activity</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px 32px;color:#0f172a;">
+
+              <p style="font-size:15px;margin:0 0 14px;color:#374151;line-height:1.7;">
+                A new comment was added to a post you interacted with:
+              </p>
+
+              <!-- Idea Title -->
+              <div style="margin:10px 0 16px;">
+                <h3 style="margin:0;font-size:18px;font-weight:600;color:#0ea5a0;">
+                  {{ idea_title }}
+                </h3>
+              </div>
+
+              <!-- Comment -->
+              <div style="margin:20px 0;padding:18px 20px;border-left:4px solid #0ea5a0;background:#f8fafc;border-radius:6px;">
+                <p style="margin:0;font-size:15px;line-height:1.6;color:#374151;">
+                  {{ comment_text }}
+                </p>
+              </div>
+
+              <!-- Link -->
+              <a href="{{ idea_link }}" style="color:#0ea5a0;font-size:15px;font-weight:600;text-decoration:none;">
+                🔗 View this post
+              </a>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:18px 32px;background:#f9fafb;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;">© {{ year }} Nexus • All Rights Reserved</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
