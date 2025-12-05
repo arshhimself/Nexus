@@ -18,10 +18,9 @@ class RegisterView(APIView):
     @csrf_exempt
     def post(self,request):
         email=request.data.get('email')
-        username=request.data.get('username')
         password=request.data.get('password')
 
-        if not email or not username or not password:
+        if not email or not password:
             return Response({'message':'Please send all fields!'},status=status.HTTP_400_BAD_REQUEST)
         existingUser = User.objects.filter(email=email).first()
         if existingUser and existingUser.is_active:
@@ -32,7 +31,6 @@ class RegisterView(APIView):
             existingUser.email=email
             existingUser.set_password(password)
             existingUser.otp=otp
-            existingUser.username=username
             existingUser.otp_expiration=timezone.now()+timezone.timedelta(minutes=5)
             existingUser.is_active=False
             existingUser.save()

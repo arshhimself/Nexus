@@ -11,6 +11,7 @@ from datetime import datetime
 from django.db.models import Count
 from random import randint
 from utils.email_service import start_email_thread
+from utils.comment_email_service import start_comment_notification_thread
 from authentication.models import User
 
 from .models import Idea, Comment, Vote
@@ -56,7 +57,7 @@ class IdeaListCreateView(APIView):
             idea = serializer.save()
 
             # ---- Start background email thread ----
-            start_email_thread(idea)
+            # start_email_thread(idea)
             # ---------------------------------------
 
             return Response(serializer.data, status=201)
@@ -105,7 +106,11 @@ class CommentListCreateView(APIView):
 
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(idea=idea, author=user)
+            comment = serializer.save(idea=idea, author=user)
+
+            # Only send comment text
+            start_comment_notification_thread(comment)
+
             return Response(serializer.data, status=201)
 
         return Response(serializer.errors, status=400)
