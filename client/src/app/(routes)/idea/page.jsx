@@ -550,7 +550,7 @@ const handleCommentSubmit = async (e, ideaId) => {
             </motion.div>
           )}
 
-          {/* VIEW 2: SUBMIT IDEA */}
+          {/* VIEW 2: FORMS ARE CLOSED MESSAGE */}
           {activeTab === 'submit' && (
             <motion.div
               key="submit"
@@ -561,59 +561,71 @@ const handleCommentSubmit = async (e, ideaId) => {
               className="max-w-xl mx-auto pt-4"
             >
               <div className="text-center mb-10">
-                <h1 className="text-3xl font-bold mb-4 tracking-tight">Share Your Idea</h1>
-                <p className="text-gray-400">Submit an idea anonymously for community review.</p>
+                <h1 className="text-3xl font-bold mb-4 tracking-tight">Forms Are Closed</h1>
+                <p className="text-gray-400">Submission period for new ideas has ended.</p>
               </div>
 
-              <form onSubmit={handleIdeaSubmit} className="space-y-6 bg-white/5 border border-white/10 p-6 md:p-8 rounded-3xl backdrop-blur-sm">
+              <div className="space-y-6 bg-white/5 border border-white/10 p-6 md:p-8 rounded-3xl backdrop-blur-sm text-center">
                 
-                <div className="space-y-2">
-                  <label htmlFor="title" className="text-sm font-medium text-gray-300 ml-1">Title</label>
-                  <input
-                    id="title"
-                    type="text"
-                    placeholder="e.g. Campus Navigation App"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition-all"
-                    required
-                    disabled={isLoading}
-                  />
+                <div className="space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/20 mb-4">
+                    <Sparkles size={32} className="text-yellow-400" />
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-white mb-2">Thank You for Your Interest!</h2>
+                  
+                  <p className="text-gray-300 mb-4">
+                    The submission period for new ideas is now closed. However, you can still:
+                  </p>
+                  
+                  <div className="space-y-3 text-left max-w-md mx-auto">
+                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                      <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <TrendingUp size={16} className="text-green-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">Vote on existing ideas</p>
+                        <p className="text-sm text-gray-400">Support the best ideas with your votes</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                      <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <MessageSquare size={16} className="text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">Comment on ideas</p>
+                        <p className="text-sm text-gray-400">Share your thoughts and feedback</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+                      <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <ArrowUp size={16} className="text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">Track the leaderboard</p>
+                        <p className="text-sm text-gray-400">See which ideas are trending</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-6 border-t border-white/10">
+                    <button 
+                      onClick={() => setActiveTab('vote')}
+                      className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 group"
+                    >
+                      <span>View Ideas Leaderboard</span>
+                      <TrendingUp size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                  
+                  <p className="text-sm text-gray-500 mt-4">
+                    Stay tuned for future opportunities to submit your ideas!
+                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="desc" className="text-sm font-medium text-gray-300 ml-1">Description</label>
-                  <textarea
-                    id="desc"
-                    rows={5}
-                    placeholder="Describe the problem and your solution..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition-all resize-none"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <button 
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Submit to Leaderboard</span>
-                      <Send size={18} className="group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </button>
-
-              </form>
+              </div>
             </motion.div>
           )}
 

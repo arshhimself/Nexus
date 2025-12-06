@@ -1,0 +1,14 @@
+Hi {{ name }},
+
+The Idea Submission Form is now closed.
+
+Thank you for submitting ideas — the response from the community has been amazing.
+
+Next steps:
+- Project issues will be released soon.
+- You can still comment and vote on others' ideas.
+
+Stay tuned for more updates!
+
+Team Nexus
+© {{ year }} Nexus • RCOE
